@@ -1,0 +1,116 @@
+[
+  {
+    "path": "poc/review_probes/web_research_boundary_20261108/tavily_pipeline_v01/guest_batch.py",
+    "original_sha256": "4a56a540e4c12f547aaf04b5b97326c4bcb0331dc7b6d8172c4cce9859b95e91",
+    "public_sha256": "4a56a540e4c12f547aaf04b5b97326c4bcb0331dc7b6d8172c4cce9859b95e91",
+    "adaptation": "Unchanged project-owned component"
+  },
+  {
+    "path": "poc/review_probes/web_research_boundary_20261108/tavily_controlled_v01/controlled_search.py",
+    "original_sha256": "8d3c244815c95732a6f1cc762c47ed477c3684aa3252a41e8e5f06e24818c9a7",
+    "public_sha256": "d46fb66977596b8f4dfafacd44654b892f5407b1bdbdfb9cd90fcd24bfdd41f8",
+    "adaptation": "Rebind the trusted public-fetch broker source hash after replacing its local runtime configuration"
+  },
+  {
+    "path": "poc/review_probes/web_research_boundary_20261108/search_extract_v01/response_contract.py",
+    "original_sha256": "1b20c538be775b73746659eb98007df8eb06bb531318c5468e0d427bceeedcff",
+    "public_sha256": "1b20c538be775b73746659eb98007df8eb06bb531318c5468e0d427bceeedcff",
+    "adaptation": "Unchanged project-owned component"
+  },
+  {
+    "path": "poc/review_probes/web_research_boundary_20261108/search_extract_v01/parser_worker.py",
+    "original_sha256": "81a6cb5989559f5af470b05a2fd8f243ac6b1081f7710eb793b327becb6c2918",
+    "public_sha256": "81a6cb5989559f5af470b05a2fd8f243ac6b1081f7710eb793b327becb6c2918",
+    "adaptation": "Unchanged project-owned component"
+  },
+  {
+    "path": "poc/review_probes/web_research_boundary_20261108/search_extract_v01/scan_binding.py",
+    "original_sha256": "35dd8c56c3c2e4ef179ea9f5cd49122f8f1fffba9ab18e658b24eda6ffa00882",
+    "public_sha256": "35dd8c56c3c2e4ef179ea9f5cd49122f8f1fffba9ab18e658b24eda6ffa00882",
+    "adaptation": "Unchanged project-owned component"
+  },
+  {
+    "path": "poc/review_probes/web_research_boundary_20261108/search_extract_v01/apk_download_receipt.json",
+    "original_sha256": "176d644782997c6826bf16bfd6164361ea671b4d14e26dea5647043d815654f5",
+    "public_sha256": "176d644782997c6826bf16bfd6164361ea671b4d14e26dea5647043d815654f5",
+    "adaptation": "Unchanged project-owned component"
+  },
+  {
+    "path": "poc/review_probes/web_research_boundary_20261108/official_extract_v01/section_worker.py",
+    "original_sha256": "e6447c4fb92b5bfafb2ecc2277fcdaa33ff8f26eb0cfe448d50967bf8f139b13",
+    "public_sha256": "e6447c4fb92b5bfafb2ecc2277fcdaa33ff8f26eb0cfe448d50967bf8f139b13",
+    "adaptation": "Unchanged project-owned component"
+  },
+  {
+    "path": "poc/applications/public_web_reader_v01/reader_core.py",
+    "original_sha256": "df54270445a3a9d36771614debb087cb0445da4dbb6a0642ce0dee9e3925898f",
+    "public_sha256": "df54270445a3a9d36771614debb087cb0445da4dbb6a0642ce0dee9e3925898f",
+    "adaptation": "Unchanged project-owned component"
+  },
+  {
+    "path": "poc/applications/public_web_reader_v01/reader_worker.py",
+    "original_sha256": "9aa7d73ff79777dd6abc50d07e07c08f84732c03e205fd7245a33166cb5d5427",
+    "public_sha256": "9aa7d73ff79777dd6abc50d07e07c08f84732c03e205fd7245a33166cb5d5427",
+    "adaptation": "Unchanged project-owned component"
+  },
+  {
+    "path": "poc/applications/public_web_reader_v01/response_contract.py",
+    "original_sha256": "1ad08569c5ee04abdadd4976daec665da66c2cd9c27079b2d5d777656d83fdef",
+    "public_sha256": "1ad08569c5ee04abdadd4976daec665da66c2cd9c27079b2d5d777656d83fdef",
+    "adaptation": "Unchanged project-owned component"
+  },
+  {
+    "path": "poc/applications/public_web_reader_v01/test_worker.py",
+    "original_sha256": "857153461928342e296b5728878398c3f0d8250b7370665d10188f5916bf62d6",
+    "public_sha256": "857153461928342e296b5728878398c3f0d8250b7370665d10188f5916bf62d6",
+    "adaptation": "Unchanged project-owned component"
+  },
+  {
+    "path": "poc/applications/public_web_reader_v01/guest_probe.sh",
+    "original_sha256": "677f8ac8ba829e0e7c4185aa2c9b6a486bddb99207a9c0ffffcc7d3eefc2548c",
+    "public_sha256": "677f8ac8ba829e0e7c4185aa2c9b6a486bddb99207a9c0ffffcc7d3eefc2548c",
+    "adaptation": "Unchanged project-owned component"
+  },
+  {
+    "path": "poc/review_probes/web_research_boundary_20261108/tavily_pipeline_v01/run_pipeline.py",
+    "original_sha256": "58ebf8adf6cc78dab1c65cce99e177c4d07386a0d2a30241e2e856563d9058d5",
+    "public_sha256": "b94ecc90e0225b05081934af93b5b5b4b9f6555af7968031cbd6d493669510db",
+    "adaptation": "Remove historical fixed-job entrypoints; portable profile; optional baseline VM"
+  },
+  {
+    "path": "poc/review_probes/web_research_boundary_20261108/official_extract_v01/run_extract.py",
+    "original_sha256": "3fc3942385521d1c527168cfb94d277897582d9d706fe7c5a6828c7cc988a05b",
+    "public_sha256": "3dcd75722d0d2759cc93b69796e1722309188840c8bc8da212479eda664686de",
+    "adaptation": "Retain bounded showvminfo retry only"
+  },
+  {
+    "path": "poc/review_probes/web_research_boundary_20261108/public_fetch_broker.py",
+    "original_sha256": "2d7e9fcfd7bc2180c80d5a1e73489304403537c88b8bcc33bbaf13f3130aae2f",
+    "public_sha256": "304b67b398ce1e2f9f38d22fcd2eb6989339446cd5ec15d55f44fb2f01f075ed",
+    "adaptation": "Replace private curl/proxy fingerprint with operator configuration"
+  },
+  {
+    "path": "poc/download_gate/dl_gate.py",
+    "original_sha256": "21718183f7d85120de6c4b2bf4d9db94c9522b911ae4d89dcbe313ec0979a104",
+    "public_sha256": "06ccc12ca9ad151a837b02dca07e4197fb0b52c64bfc1377e76456627d6cd07f",
+    "adaptation": "Keep gate mechanics; drop private history and unrelated source labels"
+  },
+  {
+    "path": "poc/applications/public_web_reader_v01/reader.py",
+    "original_sha256": "2739bec4c9a61b955e09deec69309a0da51182f00d83c15ce79a957b1621b3ee",
+    "public_sha256": "c7fe4570adee0a734b2f510a60324de4a027ea60dc0137e4c22e1dea592ec193",
+    "adaptation": "Retain backend/runtime adapter; drop private manual entrypoint"
+  },
+  {
+    "path": "poc/applications/public_web_agent_v01/agent_reader.py",
+    "original_sha256": "6d354541aa798a757dfa7a7a678f2cbfef69b5559e06debf681b227c80b43284",
+    "public_sha256": "334d2780285e8c1abe64b588f81e85fd5dc315fbd3d7a543b77026ea9c815b58",
+    "adaptation": "Portable synthetic fixtures, same-freeze backend, pre-key runtime configuration"
+  },
+  {
+    "path": "poc/applications/public_web_agent_v01/test_agent.py",
+    "original_sha256": "50c5c3f2ffe71732253c85672728b50e87cb2c92240dc4ae493c0e933bc54563",
+    "public_sha256": "e47117aac70a6d4ae39a51c2663fce818773c1528f4e4d1dfa543e22b5a9ea7d",
+    "adaptation": "Portable fixture expectations; additional public tests follow"
+  }
+]

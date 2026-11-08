@@ -1,0 +1,10 @@
+{
+  "work_dir": "C:/agent-web-runtime",
+  "vbox_path": "C:/Program Files/Oracle/VirtualBox/VBoxManage.exe",
+  "vm_name": "AgentWebReader-Offline",
+  "baseline_vm": null,
+  "curl_path": "C:/Windows/System32/curl.exe",
+  "curl_sha256": "REPLACE_WITH_YOUR_VERIFIED_CURL_SHA256",
+  "proxy_url": "http://127.0.0.1:7897",
+  "operator_approved_live_runtime": false
+}

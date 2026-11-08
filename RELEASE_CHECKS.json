@@ -1,0 +1,37 @@
+{
+  "package_revision": "agent-web-reader-public-v0.1.0-rc1",
+  "source_count": 26,
+  "source_freeze_sha256": "8b6bb97fc1aa22dbf8c04666e98bbde11fc2eefea5530c2211e0645f6519d68c",
+  "network_calls_in_release_tests": 0,
+  "vm_runs_in_release_tests": 0,
+  "real_credential_reads_in_release_tests": 0,
+  "published": false,
+  "host_normal": {
+    "exit": 0,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "3c9d9b3dc88cc455e74ec091fe922987d1182c42b63e6b639af8d453e7580b17"
+  },
+  "host_optimized": {
+    "exit": 0,
+    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "stderr_sha256": "623affc9b883e3fbbe20f1d37131583d49c58f612fd3f8f008ea79adb72dc538"
+  },
+  "fixture_demo": {
+    "exit": 0,
+    "stdout_sha256": "88d473c42e6c95701103f4ab9ab388c19bb7c0ae37a841346f1076442b6283a2",
+    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  "unconfigured_live": {
+    "exit": 1,
+    "reason": "RUNTIME_NOT_CONFIGURED"
+  },
+  "allowlist_files": 41,
+  "privacy_pattern_check": "PASS_LIMITED_ALLOWLIST",
+  "separate_context_review": {
+    "kind": "same Codex, separate context; synthetic only",
+    "groups_per_mode": 7,
+    "normal": "PASS_LIMITED",
+    "optimized": "PASS_LIMITED",
+    "reviewed_freeze_sha256": "8b6bb97fc1aa22dbf8c04666e98bbde11fc2eefea5530c2211e0645f6519d68c"
+  }
+}

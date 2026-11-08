@@ -1,0 +1,18 @@
+{
+  "fixture_version": 1,
+  "kind": "html",
+  "synthetic": true,
+  "result": {
+    "outcome": "TEXT",
+    "title": "Synthetic reader example",
+    "text": "This is synthetic fixture text, not a fetched website.\n\n```\nanswer = 2 ** 200\nprint(answer)\n```",
+    "scope": "main",
+    "truncated": false,
+    "source": {
+      "url": "https://example.com/reader-demo",
+      "mode": "synthetic",
+      "acquired_at": null,
+      "staged_at": null
+    }
+  }
+}

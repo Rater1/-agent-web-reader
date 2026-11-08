@@ -1,0 +1,14 @@
+.local/
+runtime.local.json
+__pycache__/
+*.py[cod]
+*.log
+*.viso
+*.iso
+*.apk
+*.vdi
+*.vbox*
+*.zip
+poc/download_gate/_dl_manifest.jsonl
+.env
+.env.*
