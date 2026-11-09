@@ -24,7 +24,7 @@ the configured loopback HTTP proxy remains trusted.
 
 The guest verifies input checksums and package signatures, installs packages
 without a network repository, runs six synthetic parser tests normally and
-under `-O`, then processes one job. CPU/address-space/output bounds and a host
+under `-O`, then processes one job for search, or 1–5 body jobs in a single boot. CPU/address-space/output bounds and a host
 wall-clock deadline are applied. OS no-NIC configuration is distinct from the
 Python socket patch; neither is a universal security certification.
 
@@ -54,3 +54,17 @@ otherwise `old_vm_config_unchanged` is null, not an asserted true result.
 Fixtures have a separate schema with `fixture_version` and `synthetic=true`.
 They are never stored as `PIPELINE_COMPLETE` receipts. Live reads require a
 matching live receipt and query/source binding before the read reservation.
+
+## Bounded batch implementation
+
+`batch_backend.py` reuses acquisition, scanning, source binding and VM cleanup.
+Each page is limited to 1 MiB and 4,000 extracted characters. Raw and canonical
+input copies share a 12 MiB declaration. `batch_guest.py` launches a fresh worker
+per page (5 second wall deadline and the existing resource bounds). Its UTF-8
+result frame is limited to 96 KiB within the existing 128 KiB serial bound.
+The host checks every page ID, input hash and source URL before success.
+
+The CLI uses an atomic directory lock for live operations. This does not cover
+the legacy operator wizard or stop other tools from starting the VM. A process
+crash can leave a lock; recovery is an explicit operator action after inspecting
+that no operation remains, not automatic lock stealing.

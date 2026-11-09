@@ -1,37 +1,75 @@
 {
-  "package_revision": "agent-web-reader-public-v0.1.0-rc1",
-  "source_count": 26,
-  "source_freeze_sha256": "8b6bb97fc1aa22dbf8c04666e98bbde11fc2eefea5530c2211e0645f6519d68c",
+  "package_revision": "agent-web-reader-public-v0.2.0",
+  "python": "3.12.10",
+  "source_count": 30,
+  "source_freeze_sha256": "54dc0f8f63839169c07271a848beb28a9b2031fc2b0fac124dba5053442a9304",
   "network_calls_in_release_tests": 0,
   "vm_runs_in_release_tests": 0,
   "real_credential_reads_in_release_tests": 0,
-  "published": false,
-  "host_normal": {
-    "exit": 0,
-    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "stderr_sha256": "3c9d9b3dc88cc455e74ec091fe922987d1182c42b63e6b639af8d453e7580b17"
+  "live_public_runtime_tested": false,
+  "author_checks": {
+    "test_agent_normal": {
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "08919241434753783c9364d05d54148450f3b0ad39a6dadfe0c62a37c509f5f3",
+      "stderr": "...................\r\n----------------------------------------------------------------------\r\nRan 19 tests in 0.377s\r\n\r\nOK\r\n"
+    },
+    "test_agent_optimized": {
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "4a7cddf155f88ff772bcc5c1bfde57bcc03df3bcd192eb2be3d91ad814a5f7a0",
+      "stderr": "...................\r\n----------------------------------------------------------------------\r\nRan 19 tests in 0.395s\r\n\r\nOK\r\n"
+    },
+    "test_batch_normal": {
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "81ad976600ce05fdb3aba428970aa7f92786bf018b71e3a2a9e8bb9200dbb67a",
+      "stderr": ".................\r\n----------------------------------------------------------------------\r\nRan 17 tests in 0.230s\r\n\r\nOK\r\n"
+    },
+    "test_batch_optimized": {
+      "exit": 0,
+      "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr_sha256": "a8c8d76fa51435abc9d86e7873b7fce14d551f9cbbe2d2eb240bcff3b68feb75",
+      "stderr": ".................\r\n----------------------------------------------------------------------\r\nRan 17 tests in 0.238s\r\n\r\nOK\r\n"
+    },
+    "fixture_demo": {
+      "exit": 0,
+      "stdout_sha256": "45cd98b00ac0e399b43f3a329db7d757ab6332b3af9f79776c4772cc1284a6dd",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": ""
+    },
+    "unconfigured_live": {
+      "exit": 1,
+      "stdout_sha256": "74eecf0bcb4bdf16fe32a615e208cfbd587ed79ca13a2181578f5af911220a9f",
+      "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "stderr": "",
+      "reason": "RUNTIME_NOT_CONFIGURED"
+    }
   },
-  "host_optimized": {
-    "exit": 0,
-    "stdout_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-    "stderr_sha256": "623affc9b883e3fbbe20f1d37131583d49c58f612fd3f8f008ea79adb72dc538"
-  },
-  "fixture_demo": {
-    "exit": 0,
-    "stdout_sha256": "88d473c42e6c95701103f4ab9ab388c19bb7c0ae37a841346f1076442b6283a2",
-    "stderr_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
-  },
-  "unconfigured_live": {
-    "exit": 1,
-    "reason": "RUNTIME_NOT_CONFIGURED"
-  },
-  "allowlist_files": 41,
+  "allowlist_files": 46,
   "privacy_pattern_check": "PASS_LIMITED_ALLOWLIST",
-  "separate_context_review": {
-    "kind": "same Codex, separate context; synthetic only",
-    "groups_per_mode": 7,
-    "normal": "PASS_LIMITED",
-    "optimized": "PASS_LIMITED",
-    "reviewed_freeze_sha256": "8b6bb97fc1aa22dbf8c04666e98bbde11fc2eefea5530c2211e0645f6519d68c"
+  "stage": "PRE_PUBLICATION",
+  "independent_review_of_v02": false,
+  "clean_extraction": {
+    "tests": {
+      "test_agent_normal": {
+        "exit": 0,
+        "stderr_sha256": "b452f4a6a4c220547c8eaf83b0f019948891c8008e455158212d095eede3774e"
+      },
+      "test_agent_optimized": {
+        "exit": 0,
+        "stderr_sha256": "526a71b0730952c2caf833eb153da1548fd9d59d4c15f6348c5e28719f9fda10"
+      },
+      "test_batch_normal": {
+        "exit": 0,
+        "stderr_sha256": "0cfc37d2872084dee80ed09ace0ea81ba7405bf6cd4cce87a6c15958d7c90bc8"
+      },
+      "test_batch_optimized": {
+        "exit": 0,
+        "stderr_sha256": "a0a190a55712b03a6a28751e6e208dd69f3b5cf31e721c5edfd9fa875ad9770a"
+      }
+    },
+    "fixture_demo_exit": 0,
+    "fixture_pages": 2
   }
 }

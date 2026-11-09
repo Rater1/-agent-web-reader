@@ -1,4 +1,7 @@
-# Focused publication review
+# Historical 0.1 publication review
+
+This review covers the original 0.1 freeze only. The 0.2 batch changes have
+author synthetic tests, not a new separate-context review.
 
 Reviewed source freeze:
 

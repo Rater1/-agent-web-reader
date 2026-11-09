@@ -9,6 +9,8 @@ from pathlib import Path
 import subprocess
 import sys
 import warnings
+import re
+from urllib.parse import urlsplit
 HERE = Path(__file__).resolve().parent
 REPO = HERE.parents[2]
 BASE = REPO / 'poc/review_probes/web_research_boundary_20261108'
@@ -34,6 +36,17 @@ def operator_key(record):
         warnings.simplefilter('error', getpass.GetPassWarning)
         return getpass.getpass('Tavily Key（隐藏输入）：')
 
+def query_matches(requested, returned, rows):
+    if requested==returned:return True
+    # Observed Tavily normalization: only a leading site operator may disappear.
+    # Keep the requested query intact and require every result to obey its scope.
+    m=re.fullmatch(r'site:([a-z0-9.-]+)(/[^\s]*)? (.+)',requested)
+    if m is None or returned!=m[3] or not rows:return False
+    prefix=(m[2] or '/').rstrip('/')
+    return all(urlsplit(r['url']).hostname==m[1] and
+               (not prefix or urlsplit(r['url']).path==prefix or urlsplit(r['url']).path.startswith(prefix+'/')) for r in rows)
+
+
 def build_pipeline_class(frozen):
     official = load('reader_official_reuse', BASE / 'official_extract_v01/run_extract.py')
     previous = official.previous
@@ -57,7 +70,7 @@ def build_pipeline_class(frozen):
             args = list(argv)
             if len(args) > 2 and str(args[1]) == str(self.gate) and (args[2] == 'declare'):
                 args[args.index('--target') + 1] = 'Operator public reader ' + self.kind + (' offline capsule' if '--executes-code' in args else ' response')
-                args[args.index('--size-mb') + 1] = '3'
+                args[args.index('--size-mb') + 1] = '12' if self.record.get('purpose') == 'agent-bounded-batch' else '3'
                 if '--reason' in args:
                     args[args.index('--reason') + 1] = 'Operator-configured offline parser runtime; no host execution of page code.'
             return previous.Pipeline.command(self, args, timeout)
@@ -158,7 +171,7 @@ class Backend:
         self.search_used = True
         self.question = query_text(question)
         result = self.run('search', self.question)
-        require(result.get('query') == self.question, 'SEARCH_QUERY_CHANGED')
+        require(query_matches(self.question,result.get('query'),validate_candidates(result)), 'SEARCH_QUERY_CHANGED')
         self.candidate_urls = tuple((row['url'] for row in validate_candidates(result)))
         self.report_path = self.runs[-1].evidence / 'report.html'
         return result

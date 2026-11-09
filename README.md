@@ -1,6 +1,6 @@
 # Agent Web Reader
 
-A small JSON tool that lets an agent search public pages, select one result,
+A small JSON tool that lets an agent search public pages, select one to five results,
 and receive a bounded text excerpt. The reference live path acquires bytes on
 the host, scans them, and parses them in a diskless Linux VM with no network
 interfaces. The API credential stays on the trusted host.
@@ -21,9 +21,11 @@ Use Python 3.10 or newer in a writable extracted directory:
 python -I -S -B demo.py
 python -I -S -B poc/applications/public_web_agent_v01/test_agent.py
 python -I -S -B -O poc/applications/public_web_agent_v01/test_agent.py
+python -I -S -B poc/applications/public_web_agent_v01/test_batch.py
+python -I -S -B -O poc/applications/public_web_agent_v01/test_batch.py
 ```
 
-The demo prints a `SEARCH_OK` and a `READ_OK`, both with `mode: fixture` and
+The demo prints a `SEARCH_OK` and a two-page `READ_MANY_OK`, both with `mode: fixture` and
 `source.mode: synthetic`. The page text is an included fixture. **It does not
 fetch example.com, boot a VM, or produce a VM execution receipt.** Fixture state
 is written under the ignored `.local/` directory.
@@ -38,7 +40,13 @@ Use `--fixture` for the offline example; omit it only after live setup.
 {"op":"search","query":"Python URL parsing documentation"}
 ```
 
-Keep the returned `search_id`, then choose a result's rank:
+Keep the returned `search_id`, then choose up to five distinct ranks in one batch:
+
+```json
+{"op":"read_many","search_id":"<32 hexadecimal characters>","ranks":[1,2]}
+```
+
+`pages` follows the requested rank order. The single-page interface remains compatible:
 
 ```json
 {"op":"read","search_id":"<32 hexadecimal characters>","rank":1}
@@ -46,8 +54,9 @@ Keep the returned `search_id`, then choose a result's rank:
 
 Search returns at most five candidates. Read accepts only a rank from that
 search, not an arbitrary URL, local path, header, cookie, or command. A session
-expires after two hours. One page-read reservation is allowed per search ID;
-timeouts and failed reads consume it. The default local cap is 20 search
+expires after two hours. One body-read reservation is allowed per search ID: either one `read` or one
+`read_many` batch of 1–5 pages. Select the complete batch first; a failure consumes
+it, and further pages cannot be appended to the same session. The default local cap is 20 search
 reservations per local calendar day. This is not an account-wide billing cap.
 
 ## Why this exists
@@ -74,9 +83,15 @@ URLs, attachments, or compressed page responses. HTML input is limited to
 1 MiB; text is an excerpt of at most 4,000 characters and may include navigation
 or cut through a code block. Source and truncation fields remain visible.
 
-Strict query binding currently stops if a provider normalizes the echoed query
-(for example by removing a `site:` operator). The request may already have been
-charged. Inspect the local receipt; do not automatically repeat it.
+Query binding permits only removal of a leading `site:host[/path]` operator
+from the provider echo, with all other terms unchanged and every result in that
+exact host/path scope. Both requested and provider queries remain visible. Other
+changes stop the request, which may already have been charged; do not repeat it.
+
+Multi-page live reads fetch bounded pages on the host, scan the inputs, and use
+one VM boot for the entire body batch, with a separate bounded worker per page.
+Search is a separate VM cycle; there is no resident service. A busy or stale CLI
+lock stops new live operations rather than being automatically removed.
 
 The public adaptation has been tested with fixtures and fake backends, **not
 rerun against the live service/VM**. The earlier private integration is a

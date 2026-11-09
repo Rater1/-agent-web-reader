@@ -150,7 +150,9 @@ class Tests(unittest.TestCase):
         reader=self.adapter().reader
         backend=reader.Backend.__new__(reader.Backend)
         backend.search_used=False
-        with patch.object(backend,'run',return_value={'query':'changed public question'}):
+        result=copy.deepcopy(self.adapter().replay_result('search')[0])
+        result['query']='changed public question'
+        with patch.object(backend,'run',return_value=result):
             with self.assertRaisesRegex(ValueError,'SEARCH_QUERY_CHANGED'):backend.search('public question')
 
     def test_runtime_material_source_closure(self):

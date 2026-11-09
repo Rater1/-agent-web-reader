@@ -2,9 +2,14 @@
   "agent_web.py",
   "demo.py",
   "poc/applications/public_web_agent_v01/agent_reader.py",
+  "poc/applications/public_web_agent_v01/batch_backend.py",
+  "poc/applications/public_web_agent_v01/batch_guest.py",
   "poc/applications/public_web_agent_v01/fixtures/html.json",
+  "poc/applications/public_web_agent_v01/fixtures/html2.json",
   "poc/applications/public_web_agent_v01/fixtures/search.json",
+  "poc/applications/public_web_agent_v01/source_paths.json",
   "poc/applications/public_web_agent_v01/test_agent.py",
+  "poc/applications/public_web_agent_v01/test_batch.py",
   "poc/applications/public_web_reader_v01/guest_probe.sh",
   "poc/applications/public_web_reader_v01/reader.py",
   "poc/applications/public_web_reader_v01/reader_core.py",
@@ -23,6 +28,5 @@
   "poc/review_probes/web_research_boundary_20261108/search_extract_v01/scan_binding.py",
   "poc/review_probes/web_research_boundary_20261108/tavily_controlled_v01/controlled_search.py",
   "poc/review_probes/web_research_boundary_20261108/tavily_pipeline_v01/guest_batch.py",
-  "poc/review_probes/web_research_boundary_20261108/tavily_pipeline_v01/run_pipeline.py",
-  "poc/applications/public_web_agent_v01/source_paths.json"
+  "poc/review_probes/web_research_boundary_20261108/tavily_pipeline_v01/run_pipeline.py"
 ]

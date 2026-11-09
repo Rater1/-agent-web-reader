@@ -18,4 +18,4 @@ def call(data):
 
 
 result = call(dict(op='search', query='Python URL parsing documentation'))
-call(dict(op='read', search_id=result['search_id'], rank=1))
+call(dict(op='read_many', search_id=result['search_id'], ranks=[1,2]))

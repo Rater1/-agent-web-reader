@@ -1,0 +1,18 @@
+{
+  "fixture_version": 1,
+  "kind": "html2",
+  "synthetic": true,
+  "result": {
+    "outcome": "TEXT",
+    "title": "Second synthetic example",
+    "text": "A second bounded synthetic excerpt for the batch interface.",
+    "scope": "main",
+    "truncated": false,
+    "source": {
+      "url": "https://example.org/batch-demo",
+      "mode": "synthetic",
+      "acquired_at": null,
+      "staged_at": null
+    }
+  }
+}

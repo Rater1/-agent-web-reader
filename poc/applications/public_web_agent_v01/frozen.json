@@ -1,14 +1,19 @@
 {
-  "revision": "agent-web-reader-public-v0.1.0-rc1",
+  "revision": "agent-web-reader-public-v0.2.0",
   "sources": {
     "agent_web.py": "9caf8584c6e7bbcc9aeb11dfcbb67522cc6cc8ca0dfd307fdf48eb6e6f8b3cae",
-    "demo.py": "698aef5d13bc5248540bb5ab99c558722e2b66971c35a2fc723dfae5bcece193",
-    "poc/applications/public_web_agent_v01/agent_reader.py": "334d2780285e8c1abe64b588f81e85fd5dc315fbd3d7a543b77026ea9c815b58",
+    "demo.py": "9fa76d952ce67b5b59d7e91f6c7d4ebfd88dfc2fb9afcfd17908c2d6e3cfb5eb",
+    "poc/applications/public_web_agent_v01/agent_reader.py": "b0f08b85a9f73e765f34cda8a868c0a3f4640ff91a63f614fd3ac589fc27c38d",
+    "poc/applications/public_web_agent_v01/batch_backend.py": "8ad27ecef89fa28ce7fd3ca3261a74a2cc026ec8c19d53f43aa0735ea34d73be",
+    "poc/applications/public_web_agent_v01/batch_guest.py": "3c39b4832729b9740cf7baf3718ade22d2ba65962009626bece2dc55e95981d6",
     "poc/applications/public_web_agent_v01/fixtures/html.json": "294caf4d4de12a67149e79628eaaa06c8bd59d02681186620be852ba68c9ffe8",
-    "poc/applications/public_web_agent_v01/fixtures/search.json": "11e463ec3e216b13836dac362ba66a875a9ed7ad5958c87494eb38a894201851",
-    "poc/applications/public_web_agent_v01/test_agent.py": "e47117aac70a6d4ae39a51c2663fce818773c1528f4e4d1dfa543e22b5a9ea7d",
+    "poc/applications/public_web_agent_v01/fixtures/html2.json": "b731d58cfcf0999973557ce42447df76b62879e2f58aa09ca6f9db5758854280",
+    "poc/applications/public_web_agent_v01/fixtures/search.json": "fe32a71ebfe71eaea94875bacc680224732e734f3cf38d3e289a9ab3936759ef",
+    "poc/applications/public_web_agent_v01/source_paths.json": "7d52c1c91c318332da48d41d43440d74b530b46325f8efc8dcb2a7bdc28b9602",
+    "poc/applications/public_web_agent_v01/test_agent.py": "218122393cef6c9447d9189aed33d8ba68cfacc101ce81377c997b5f15d4744a",
+    "poc/applications/public_web_agent_v01/test_batch.py": "3e574825879e3fb3c40947d372d64439753034226e2592b03efd5d312ef26f25",
     "poc/applications/public_web_reader_v01/guest_probe.sh": "677f8ac8ba829e0e7c4185aa2c9b6a486bddb99207a9c0ffffcc7d3eefc2548c",
-    "poc/applications/public_web_reader_v01/reader.py": "c7fe4570adee0a734b2f510a60324de4a027ea60dc0137e4c22e1dea592ec193",
+    "poc/applications/public_web_reader_v01/reader.py": "6e1c5fee38a9e83327d42e032fe43268fb807248851858f2932fc812b62edb72",
     "poc/applications/public_web_reader_v01/reader_core.py": "df54270445a3a9d36771614debb087cb0445da4dbb6a0642ce0dee9e3925898f",
     "poc/applications/public_web_reader_v01/reader_worker.py": "9aa7d73ff79777dd6abc50d07e07c08f84732c03e205fd7245a33166cb5d5427",
     "poc/applications/public_web_reader_v01/response_contract.py": "1ad08569c5ee04abdadd4976daec665da66c2cd9c27079b2d5d777656d83fdef",
@@ -25,13 +30,13 @@
     "poc/review_probes/web_research_boundary_20261108/search_extract_v01/scan_binding.py": "35dd8c56c3c2e4ef179ea9f5cd49122f8f1fffba9ab18e658b24eda6ffa00882",
     "poc/review_probes/web_research_boundary_20261108/tavily_controlled_v01/controlled_search.py": "d46fb66977596b8f4dfafacd44654b892f5407b1bdbdfb9cd90fcd24bfdd41f8",
     "poc/review_probes/web_research_boundary_20261108/tavily_pipeline_v01/guest_batch.py": "4a56a540e4c12f547aaf04b5b97326c4bcb0331dc7b6d8172c4cce9859b95e91",
-    "poc/review_probes/web_research_boundary_20261108/tavily_pipeline_v01/run_pipeline.py": "b94ecc90e0225b05081934af93b5b5b4b9f6555af7968031cbd6d493669510db",
-    "poc/applications/public_web_agent_v01/source_paths.json": "82f1753b1cfb1104ef6db4a0e2197eb2342dfc8adb8a1eb8ecd984c4c5953d03"
+    "poc/review_probes/web_research_boundary_20261108/tavily_pipeline_v01/run_pipeline.py": "b94ecc90e0225b05081934af93b5b5b4b9f6555af7968031cbd6d493669510db"
   },
   "download_gate_sha256": "06ccc12ca9ad151a837b02dca07e4197fb0b52c64bfc1377e76456627d6cd07f",
   "fixture_sha256": {
-    "search": "11e463ec3e216b13836dac362ba66a875a9ed7ad5958c87494eb38a894201851",
-    "html": "294caf4d4de12a67149e79628eaaa06c8bd59d02681186620be852ba68c9ffe8"
+    "search": "fe32a71ebfe71eaea94875bacc680224732e734f3cf38d3e289a9ab3936759ef",
+    "html": "294caf4d4de12a67149e79628eaaa06c8bd59d02681186620be852ba68c9ffe8",
+    "html2": "b731d58cfcf0999973557ce42447df76b62879e2f58aa09ca6f9db5758854280"
   },
   "packages_content_sha256": "ceae5223a1cb83a5209c3d477ce1103e3076890f64c89a107a7386c947aaf585",
   "daily_search_limit": 20

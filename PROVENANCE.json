@@ -98,19 +98,85 @@
   {
     "path": "poc/applications/public_web_reader_v01/reader.py",
     "original_sha256": "2739bec4c9a61b955e09deec69309a0da51182f00d83c15ce79a957b1621b3ee",
-    "public_sha256": "c7fe4570adee0a734b2f510a60324de4a027ea60dc0137e4c22e1dea592ec193",
-    "adaptation": "Retain backend/runtime adapter; drop private manual entrypoint"
+    "public_sha256": "6e1c5fee38a9e83327d42e032fe43268fb807248851858f2932fc812b62edb72",
+    "adaptation": "Retain backend/runtime adapter; drop private manual entrypoint; 0.2 bounded batch/public runtime adaptation"
   },
   {
     "path": "poc/applications/public_web_agent_v01/agent_reader.py",
     "original_sha256": "6d354541aa798a757dfa7a7a678f2cbfef69b5559e06debf681b227c80b43284",
-    "public_sha256": "334d2780285e8c1abe64b588f81e85fd5dc315fbd3d7a543b77026ea9c815b58",
-    "adaptation": "Portable synthetic fixtures, same-freeze backend, pre-key runtime configuration"
+    "public_sha256": "b0f08b85a9f73e765f34cda8a868c0a3f4640ff91a63f614fd3ac589fc27c38d",
+    "adaptation": "Portable synthetic fixtures, same-freeze backend, pre-key runtime configuration; 0.2 bounded batch/public runtime adaptation"
   },
   {
     "path": "poc/applications/public_web_agent_v01/test_agent.py",
     "original_sha256": "50c5c3f2ffe71732253c85672728b50e87cb2c92240dc4ae493c0e933bc54563",
-    "public_sha256": "e47117aac70a6d4ae39a51c2663fce818773c1528f4e4d1dfa543e22b5a9ea7d",
+    "public_sha256": "218122393cef6c9447d9189aed33d8ba68cfacc101ce81377c997b5f15d4744a",
     "adaptation": "Portable fixture expectations; additional public tests follow"
+  },
+  {
+    "path": "agent_web.py",
+    "original_sha256": null,
+    "public_sha256": "9caf8584c6e7bbcc9aeb11dfcbb67522cc6cc8ca0dfd307fdf48eb6e6f8b3cae",
+    "adaptation": "0.2 own-project batch source adapted for portable fixtures and configurable public runtime"
+  },
+  {
+    "path": "demo.py",
+    "original_sha256": null,
+    "public_sha256": "9fa76d952ce67b5b59d7e91f6c7d4ebfd88dfc2fb9afcfd17908c2d6e3cfb5eb",
+    "adaptation": "0.2 own-project batch source adapted for portable fixtures and configurable public runtime"
+  },
+  {
+    "path": "poc/applications/public_web_agent_v01/batch_backend.py",
+    "original_sha256": "dcee71b476903642f322d573d37c18ff3f7239d3215a998b7c28d8fe32a0b59a",
+    "public_sha256": "8ad27ecef89fa28ce7fd3ca3261a74a2cc026ec8c19d53f43aa0735ea34d73be",
+    "adaptation": "0.2 own-project batch source adapted for portable fixtures and configurable public runtime"
+  },
+  {
+    "path": "poc/applications/public_web_agent_v01/batch_guest.py",
+    "original_sha256": "3c39b4832729b9740cf7baf3718ade22d2ba65962009626bece2dc55e95981d6",
+    "public_sha256": "3c39b4832729b9740cf7baf3718ade22d2ba65962009626bece2dc55e95981d6",
+    "adaptation": "0.2 own-project batch source adapted for portable fixtures and configurable public runtime"
+  },
+  {
+    "path": "poc/applications/public_web_agent_v01/fixtures/html.json",
+    "original_sha256": null,
+    "public_sha256": "294caf4d4de12a67149e79628eaaa06c8bd59d02681186620be852ba68c9ffe8",
+    "adaptation": "0.2 own-project batch source adapted for portable fixtures and configurable public runtime"
+  },
+  {
+    "path": "poc/applications/public_web_agent_v01/fixtures/html2.json",
+    "original_sha256": null,
+    "public_sha256": "b731d58cfcf0999973557ce42447df76b62879e2f58aa09ca6f9db5758854280",
+    "adaptation": "0.2 own-project batch source adapted for portable fixtures and configurable public runtime"
+  },
+  {
+    "path": "poc/applications/public_web_agent_v01/fixtures/search.json",
+    "original_sha256": null,
+    "public_sha256": "fe32a71ebfe71eaea94875bacc680224732e734f3cf38d3e289a9ab3936759ef",
+    "adaptation": "0.2 own-project batch source adapted for portable fixtures and configurable public runtime"
+  },
+  {
+    "path": "poc/applications/public_web_agent_v01/source_paths.json",
+    "original_sha256": "8a447e468084def743642d959727df54083c172efceea00fa94a0640a1c1ac9c",
+    "public_sha256": "7d52c1c91c318332da48d41d43440d74b530b46325f8efc8dcb2a7bdc28b9602",
+    "adaptation": "0.2 own-project batch source adapted for portable fixtures and configurable public runtime"
+  },
+  {
+    "path": "poc/applications/public_web_agent_v01/test_batch.py",
+    "original_sha256": "0fca12df30b2627b4514dac335a2a3de193f3d4e8885e0ba6120f929e1569485",
+    "public_sha256": "3e574825879e3fb3c40947d372d64439753034226e2592b03efd5d312ef26f25",
+    "adaptation": "0.2 own-project batch source adapted for portable fixtures and configurable public runtime"
+  },
+  {
+    "path": "poc/review_probes/web_research_boundary_20261108/prepare_offline_vm.py",
+    "original_sha256": "8ea88d714aa6b15227a13efe009dbde9795b8f7b0425e01563000e0024110a05",
+    "public_sha256": "ca7bbed243917d2844d73910243df51edbf8b592a72077b31a925f6e2dd98a92",
+    "adaptation": "0.2 own-project batch source adapted for portable fixtures and configurable public runtime"
+  },
+  {
+    "path": "poc/review_probes/web_research_boundary_20261108/runtime_config.py",
+    "original_sha256": null,
+    "public_sha256": "00736b4aa12972182bc73d1f1bd15ec70ed2e9432ef5b2d215a24a91f32228ca",
+    "adaptation": "0.2 own-project batch source adapted for portable fixtures and configurable public runtime"
   }
 ]

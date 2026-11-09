@@ -10,6 +10,11 @@
         "title": "Synthetic documentation example",
         "url": "https://example.com/reader-demo",
         "snippet": "Fixture only. No website has been requested."
+      },
+      {
+        "title": "Second synthetic documentation example",
+        "url": "https://example.org/batch-demo",
+        "snippet": "Second fixture only; no request sent."
       }
     ],
     "credits_reported": 0,
