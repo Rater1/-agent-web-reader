@@ -104,14 +104,14 @@
   {
     "path": "poc/applications/public_web_agent_v01/agent_reader.py",
     "original_sha256": "6d354541aa798a757dfa7a7a678f2cbfef69b5559e06debf681b227c80b43284",
-    "public_sha256": "656e2cd44160369dc3f837af301bb63e45d6121918591944df611bff5e2ecce0",
-    "adaptation": "Run the screenshot transport regression in the source guard."
+    "public_sha256": "67f437a78c4ca47847a9bd7495f213cd12bfe1d1feffd17d004117c78da98fbe",
+    "adaptation": "Run the screenshot transport regression in the source guard. Timing and parallel selftest candidate."
   },
   {
     "path": "poc/applications/public_web_agent_v01/test_agent.py",
     "original_sha256": "50c5c3f2ffe71732253c85672728b50e87cb2c92240dc4ae493c0e933bc54563",
-    "public_sha256": "218122393cef6c9447d9189aed33d8ba68cfacc101ce81377c997b5f15d4744a",
-    "adaptation": "Portable fixture expectations; additional public tests follow"
+    "public_sha256": "0598db73d8a3079d5adc6dacd025845e3e8b1f6d95691eee1cfcf2dc15315d81",
+    "adaptation": "Portable fixture expectations; additional public tests follow Timing and parallel selftest candidate."
   },
   {
     "path": "agent_web.py",
@@ -181,14 +181,14 @@
   },
   {
     "path": "poc/applications/public_web_agent_v01/screenshot_backend.py",
-    "public_sha256": "bb6f5160b1f483f633af6f97bb8f191ca951d9f236cf5348e0d852442f6f067b",
-    "adaptation": "Canonical URL keys, first document base, and scanned response-policy binding.",
+    "public_sha256": "5c7c9c0a3ba6e5b2de569d25ea60b0c4829aad5e0dc368f3df75d3adcd7e4299",
+    "adaptation": "Canonical URL keys, first document base, and scanned response-policy binding. Timing and parallel selftest candidate.",
     "original_sha256": "c128dd713653caa0b6266878e697344cb31850c5a30668452d691ca2e2cf6771"
   },
   {
     "path": "poc/applications/public_web_agent_v01/screenshot_vm.py",
-    "public_sha256": "0db2e4fcd3b922f0b05e03ba921537c30ae7ea8d89581d5044fb063ad0dba137",
-    "adaptation": "Add boot-media identity checks, per-VM locking, and bounded owned cleanup.",
+    "public_sha256": "716b3de0880fbe526a521c05df88b066c547d6784d5155890fdd67637cbc7f11",
+    "adaptation": "Add boot-media identity checks, per-VM locking, and bounded owned cleanup. Timing and parallel selftest candidate.",
     "original_sha256": "6ba2812c9bc4e8c51648b39d295ad7f08e8908726149622222731ce6840870e3"
   },
   {
@@ -205,13 +205,13 @@
   },
   {
     "path": "poc/applications/public_web_agent_v01/test_screenshot.py",
-    "public_sha256": "3b1358634c594ccece02e8ccf18cfc92084d663d52f2fb36402d9758bb83dfc3",
-    "adaptation": "Add canonical URL, initial asset and response-policy regressions."
+    "public_sha256": "68942d2585c2ec581ffce229c07dbd6534420538394a39498f340c661f183c3a",
+    "adaptation": "Add canonical URL, initial asset and response-policy regressions. Timing and parallel selftest candidate."
   },
   {
     "path": "poc/applications/public_web_agent_v01/test_screenshot_vm.py",
-    "public_sha256": "0a5a9999b0340d4c7bfab7af42ecbf35ed8107bf8ac70ae18b0118f905ce0262",
-    "adaptation": "Add mock boot ISO, lock, and power-off transition regressions."
+    "public_sha256": "c188c1bdc21aad5236fafe28bd6f239e883516404cd553612e52403398d60c51",
+    "adaptation": "Add mock boot ISO, lock, and power-off transition regressions. Timing and parallel selftest candidate."
   },
   {
     "path": "poc/applications/public_web_agent_v01/test_screenshot_transport.py",

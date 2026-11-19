@@ -1,12 +1,13 @@
 {
-  "package_revision": "agent-web-reader-public-v0.3.1",
+  "release": "0.3.2",
+  "package_revision": "agent-web-reader-public-v0.3.2-candidate",
   "python": "3.12.10",
   "source_count": 37,
-  "source_freeze_sha256": "a1c1b5575bbb3afaea52936cb74b29204755ade3c88bde80d6ee72a1e44c4832",
+  "source_freeze_sha256": "115f0abdbe99f13d774934e80b8f18f81ed78260151b3755d9d2d2345a27aba5",
   "clean_copy_offline_tests": {
     "test_agent.py": {
-      "normal": 19,
-      "optimized": 19
+      "normal": 21,
+      "optimized": 21
     },
     "test_batch.py": {
       "normal": 17,
@@ -29,9 +30,35 @@
   "missing_screenshot_runtime_both_modes": "PASS_BEFORE_RESERVATION",
   "file_url_both_modes": "STOPPED_NOT_SENT",
   "source_tamper": "STOPPED_BEFORE_RUNTIME",
-  "credential_reads": 0,
-  "network_reads": 0,
-  "vm_runs": 0,
-  "public_port_live_vm_tested": false,
-  "node_guest_syntax_check": "PASS"
+  "either_selftest_mode_failure": "STOPPED_NOT_SENT",
+  "node_guest_syntax_check": "UNCHANGED_FROM_0.3.1",
+  "clean_copy_credential_reads": 0,
+  "clean_copy_network_reads": 0,
+  "clean_copy_vm_runs": 0,
+  "single_host_offline_timing": {
+    "order": "ABBAABBA",
+    "runs_per_arm": 4,
+    "same_selftests_serial_median_seconds": 4.952,
+    "same_selftests_parallel_median_seconds": 2.529,
+    "published_0_3_1_diagnostic_median_seconds": 4.997,
+    "candidate_0_3_2_diagnostic_median_seconds": 2.817
+  },
+  "synthetic_screenshot_real_vm": {
+    "runs": 1,
+    "input": "fixed local fixture at acquisition boundary",
+    "website_requests": 0,
+    "credential_reads": 0,
+    "status": "SCREENSHOT_READY",
+    "verified_pngs": 3,
+    "expected_content_fields": 3,
+    "fields_read_correctly_from_png_only": 2,
+    "middle_viewport_triggered_content_loaded": false,
+    "resource_complete": true,
+    "blocked_count": 0,
+    "vertical_truncated": false,
+    "text_truncated": false,
+    "final_poweroff": true,
+    "task_disc_detached": true
+  },
+  "website_acquisition_with_real_vm_tested": false
 }

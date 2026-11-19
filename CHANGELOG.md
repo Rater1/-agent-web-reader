@@ -1,5 +1,11 @@
 # Changes
 
+## 0.3.2 — 2026-11-19
+
+- Record accepted CLI request time and screenshot phase timings.
+- Run ordinary and optimized Python selftests in two concurrent groups, with both required before processing the request.
+- Record a real offline VM readback case in which the screenshot returned successfully but skipped a viewport-triggered middle section.
+
 ## 0.3.1 — 2026-11-19
 
 - Disable curl URL globbing for all broker requests.

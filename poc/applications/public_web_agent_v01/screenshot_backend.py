@@ -1,5 +1,6 @@
 """Acquire a bounded public page and stage exact scanned bytes for offline capture."""
 
+from contextlib import contextmanager
 import datetime
 import hashlib
 from html.parser import HTMLParser
@@ -230,15 +231,24 @@ def preflight():
 
 
 class Backend:
-    def __init__(self, prepared, state_root):
+    def __init__(self, prepared, state_root, *, timings=None):
         self.vm, self.runtime, self.broker = prepared
         self.started = time.perf_counter()
         self.run_id = 'shot-' + uuid.uuid4().hex
         self.evidence = Path(state_root) / 'screenshots' / self.run_id
         self.evidence.mkdir(parents=True, exist_ok=False)
         self.work = Path(tempfile.mkdtemp(prefix='capture-', dir=self.runtime['work_dir']))
-        self.record = dict(run_id=self.run_id, phase='PREFLIGHT', network_attempts=0)
+        self.timings = {} if timings is None else timings
+        self.record = dict(run_id=self.run_id, phase='PREFLIGHT', network_attempts=0, timings_seconds=self.timings)
         self.binding = load('public_screenshot_binding', BASE / 'search_extract_v01/scan_binding.py')
+
+    @contextmanager
+    def measure(self, phase):
+        started = time.perf_counter()
+        try:
+            yield
+        finally:
+            self.timings[phase] = round(time.perf_counter() - started, 3)
 
     def gate(self, *args):
         env = {key: value for key, value in os.environ.items()
@@ -347,8 +357,10 @@ class Backend:
     def capture(self, source):
         source = url(source)
         try:
-            incoming, maps, scan = self.acquire(source)
-            cap, receipt, job = self.stage(source, incoming, maps, scan)
+            with self.measure('acquire_and_scan'):
+                incoming, maps, scan = self.acquire(source)
+            with self.measure('stage_and_scan'):
+                cap, receipt, job = self.stage(source, incoming, maps, scan)
             self.record['phase'] = 'RENDER'
             result = self.vm.render(self, cap, receipt, job, self.runtime)
             result['resource_complete'] = not (self.record['excluded_assets'] or

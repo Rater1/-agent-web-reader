@@ -87,3 +87,35 @@ captures and VM shutdown states, and exercise content binding for raw headers
 and the canonical replay map. They also cover the first document base and
 same-origin checks. Results for the exact source freeze are recorded in
 [RELEASE_CHECKS.json](../RELEASE_CHECKS.json).
+
+## Timing and screenshot readback in 0.3.2
+
+The clean copy passed 68 tests in ordinary Python and 68 in optimized Python.
+Injected failures in either mode stopped the CLI before entering the runtime.
+The table shows medians from one Windows host and four runs per arm,
+interleaved in ABBA ABBA order.
+
+| Offline comparison | Serial | Parallel |
+| --- | ---: | ---: |
+| Same selftest workload | 4.952 s | 2.529 s |
+| CLI screenshot diagnostic with no runtime configured | 4.997 s | 2.817 s |
+
+These measurements cover selftests and the diagnostic path. End-to-end
+screenshot latency with website acquisition remains unmeasured for this
+release.
+
+One fixed synthetic page was fed in at the host acquisition boundary. The
+rest of the screenshot path ran with the public source, actual host scans and
+a provisioned offline VirtualBox guest. It returned three verified PNGs and
+the VM powered off with its task disc detached. A reader agent received only
+the PNGs in a fresh context. It read the Chinese heading and bottom table
+value correctly. The middle section showed its loading placeholder in the
+PNG and text excerpt. Its marker required the middle of the page to enter the
+viewport, and the renderer jumped directly to the end.
+
+Two of the three expected fields passed this end-to-end content check.
+`SCREENSHOT_READY`, `resource_complete=true`, zero blocked requests and the
+two false truncation flags did not identify the missed content. The result
+covers one controlled page with zero website requests. The evidence uses the
+exact frozen source identifier retained in
+[RELEASE_CHECKS.json](../RELEASE_CHECKS.json).

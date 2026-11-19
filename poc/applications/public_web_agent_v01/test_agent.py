@@ -2,16 +2,23 @@
 import concurrent.futures
 import copy
 import importlib.util
+import io
 import json
 from pathlib import Path
+import subprocess
 import sys
 import tempfile
+import threading
 import unittest
 from unittest.mock import patch
 
 HERE=Path(__file__).resolve().parent
 sys.path.insert(0,str(HERE))
 import agent_reader as a
+
+SELFTEST_SCRIPTS = [
+    'test_agent.py', 'test_batch.py', 'test_screenshot.py', 'test_screenshot_vm.py', 'test_screenshot_transport.py',
+]
 
 
 class Tests(unittest.TestCase):
@@ -93,6 +100,66 @@ class Tests(unittest.TestCase):
         with self.assertRaisesRegex(a.Stopped,'SOURCE_CHANGED'):a.guard(bad,lambda:0,lambda:calls.append('network'))
         with self.assertRaisesRegex(a.Stopped,'SELFTEST_FAILED'):a.guard(self.frozen,lambda:1,lambda:calls.append('network'))
         self.assertEqual(calls,[])
+
+    def test_parallel_selftests_join_before_protected_operation(self):
+        first_call = threading.Barrier(2, timeout=5)
+        seen = {False: [], True: []}
+        completed = {False: threading.Event(), True: threading.Event()}
+        restricted_env = dict(SystemRoot=r'C:\Windows', WINDIR=r'C:\Windows', PATH=r'C:\Windows\System32')
+
+        def run(command, **options):
+            optimized = '-O' in command
+            flags = ['-O'] if optimized else []
+            self.assertEqual(command[:-1], [sys.executable, '-I', '-S', '-B', *flags])
+            self.assertEqual(options, dict(env=restricted_env, capture_output=True, timeout=30))
+            self.assertEqual(Path(command[-1]).parent, HERE)
+            if not seen[optimized]:
+                first_call.wait()
+            seen[optimized].append(Path(command[-1]).name)
+            if len(seen[optimized]) == len(SELFTEST_SCRIPTS):
+                completed[optimized].set()
+            return subprocess.CompletedProcess(command, 0)
+
+        def protected():
+            self.assertTrue(all(event.is_set() for event in completed.values()))
+            return 'ready'
+
+        with patch.object(a.subprocess, 'run', side_effect=run):
+            self.assertEqual(a.guard(self.frozen, a.selftests, protected), 'ready')
+        self.assertEqual(seen, {False: SELFTEST_SCRIPTS, True: SELFTEST_SCRIPTS})
+
+    def test_each_selftest_mode_failure_stops_cli_before_runtime(self):
+        for failed_mode in (False, True):
+            for failure in ('exit', 'timeout', 'launch'):
+                with self.subTest(optimized=failed_mode, failure=failure):
+                    seen = {False: [], True: []}
+
+                    def run(command, **_options):
+                        optimized = '-O' in command
+                        script = Path(command[-1]).name
+                        seen[optimized].append(script)
+                        if optimized == failed_mode and script == SELFTEST_SCRIPTS[1]:
+                            if failure == 'timeout':
+                                raise subprocess.TimeoutExpired(command, 30)
+                            if failure == 'launch':
+                                raise OSError('synthetic launch failure')
+                            return subprocess.CompletedProcess(command, 1)
+                        return subprocess.CompletedProcess(command, 0)
+
+                    payload = b'{"op":"screenshot","url":"https://example.org/"}'
+                    with io.TextIOWrapper(io.BytesIO(payload)) as stdin, \
+                         patch.object(a.sys, 'argv', ['agent_web.py']), patch.object(a.sys, 'stdin', stdin), \
+                         patch.object(a.subprocess, 'run', side_effect=run), \
+                         patch.object(a, 'operation_lock') as runtime_lock, patch.object(a, 'Adapter') as adapter, \
+                         patch.object(a, 'load_screenshot') as screenshot, patch.object(a, 'runtime_key') as key:
+                        with self.assertRaisesRegex(a.Stopped, '^SELFTEST_FAILED$') as stopped:
+                            a.main()
+                    self.assertEqual(stopped.exception.request_status, 'NOT_SENT')
+                    self.assertEqual(seen[failed_mode], SELFTEST_SCRIPTS[:2])
+                    self.assertEqual(seen[not failed_mode], SELFTEST_SCRIPTS)
+                    for use in (runtime_lock, adapter, screenshot, key):
+                        use.assert_not_called()
+
     def test_registry_key_mock_only(self):
         with patch.object(a.os,'environ',{'TAVILY_API_KEY':'tvly-SYNTHETIC'}):
             self.assertEqual(a.runtime_key({}),'tvly-SYNTHETIC')

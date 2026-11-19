@@ -1,4 +1,5 @@
 """JSON CLI for agents. Reuses the frozen offline reader; no interactive prompts."""
+from concurrent.futures import ThreadPoolExecutor
 import contextlib
 import datetime
 import hashlib
@@ -36,6 +37,15 @@ def require(ok, code):
 
 def sha(path):
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+@contextlib.contextmanager
+def measure(timings, phase):
+    started = time.perf_counter()
+    try:
+        yield
+    finally:
+        timings[phase] = round(time.perf_counter() - started, 3)
 
 
 def load_reader():
@@ -119,12 +129,14 @@ def query_matches(requested, returned, rows):
 
 
 class Adapter:
-    def __init__(self, frozen, *, replay=False, root=STATE, backend_factory=None, batch_backend_factory=None, clock=time.time):
+    def __init__(self, frozen, *, replay=False, root=STATE, backend_factory=None, batch_backend_factory=None,
+                 clock=time.time, timings=None):
         self.frozen, self.replay, self.root, self.clock = frozen, replay, Path(root), clock
         self.reader = load_reader()
         self.reader.operator_key = runtime_key
         self.backend_factory = backend_factory
         self.batch_backend_factory = batch_backend_factory
+        self.timings = {} if timings is None else timings
         self.root.mkdir(parents=True, exist_ok=True)
 
     def backend(self):
@@ -266,7 +278,8 @@ class Adapter:
             require(not self.replay, 'SCREENSHOT_FIXTURE_UNSUPPORTED')
             module = load_screenshot()
             source = module.url(source)
-            prepared = module.preflight()
+            with measure(self.timings, 'preflight'):
+                prepared = module.preflight()
             folder = self.root / 'screenshot_budget'
             folder.mkdir(exist_ok=True)
             day = datetime.datetime.now().date().isoformat()
@@ -279,7 +292,7 @@ class Adapter:
                     continue
             else:
                 raise Stopped('SCREENSHOT_DAILY_BUDGET_EXHAUSTED')
-            backend = module.Backend(prepared, self.root)
+            backend = module.Backend(prepared, self.root, timings=self.timings)
         except Exception as exc:
             exc.request_status = 'NOT_SENT'
             raise
@@ -306,21 +319,36 @@ def operation_lock(root=STATE):
 
 def selftests():
     env = dict(SystemRoot=r'C:\Windows', WINDIR=r'C:\Windows', PATH=r'C:\Windows\System32')
-    for opt in (False, True):
-        for name in ('test_agent.py', 'test_batch.py', 'test_screenshot.py', 'test_screenshot_vm.py',
-                     'test_screenshot_transport.py'):
-            child = subprocess.run([sys.executable, '-I', '-S', '-B', *(['-O'] if opt else []), str(HERE/name)],
-                                   env=env, capture_output=True, timeout=30)
-            if child.returncode:
-                return 1
-    return 0
+    scripts = ('test_agent.py', 'test_batch.py', 'test_screenshot.py', 'test_screenshot_vm.py',
+               'test_screenshot_transport.py')
+
+    def run_mode(optimized):
+        command = [sys.executable, '-I', '-S', '-B']
+        if optimized:
+            command.append('-O')
+        try:
+            for script in scripts:
+                child = subprocess.run([*command, str(HERE / script)], env=env, capture_output=True, timeout=30)
+                if child.returncode:
+                    return 1
+        except (OSError, subprocess.TimeoutExpired):
+            return 1
+        return 0
+
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        # Consume both results before the caller can enter the protected operation.
+        return max(pool.map(run_mode, (False, True)))
 
 
 def guard(frozen, tests, protected):
-    require(set(frozen['sources']) == set(json.loads((HERE/'source_paths.json').read_text(encoding='utf-8'))), 'SOURCE_SET')
-    require(all(sha(REPO/p) == value for p, value in frozen['sources'].items()), 'SOURCE_CHANGED')
-    require(sha(REPO/'poc/download_gate/dl_gate.py') == frozen['download_gate_sha256'], 'GATE_CHANGED')
-    require(tests() == 0, 'SELFTEST_FAILED')
+    try:
+        require(set(frozen['sources']) == set(json.loads((HERE/'source_paths.json').read_text(encoding='utf-8'))), 'SOURCE_SET')
+        require(all(sha(REPO/p) == value for p, value in frozen['sources'].items()), 'SOURCE_CHANGED')
+        require(sha(REPO/'poc/download_gate/dl_gate.py') == frozen['download_gate_sha256'], 'GATE_CHANGED')
+        require(tests() == 0, 'SELFTEST_FAILED')
+    except Stopped as exc:
+        exc.request_status = 'NOT_SENT'
+        raise
     return protected()
 
 
@@ -337,21 +365,38 @@ def main():
         raw = sys.stdin.buffer.read(4097)
         require(len(raw) <= 4096, 'REQUEST_SIZE')
         data = request(raw.decode('utf-8'))
-    frozen = json.loads((HERE/'frozen.json').read_text(encoding='utf-8'))
+    accepted = time.perf_counter()
+    timings = {}
+
+    def check_selftests():
+        with measure(timings, 'selftests'):
+            return selftests()
+
     def perform():
         # The old driver prints progress. Keep the machine response as one JSON.
         with contextlib.redirect_stdout(io.StringIO()):
-            if sys.argv[1:]==['--fixture']:return Adapter(frozen,replay=True).handle(data)
+            if sys.argv[1:] == ['--fixture']:
+                return Adapter(frozen, replay=True, timings=timings).handle(data)
             with operation_lock():
                 if diagnose:
                     try:
-                        load_screenshot().preflight()
+                        with measure(timings, 'preflight'):
+                            load_screenshot().preflight()
                     except Exception as exc:
                         exc.request_status = 'NOT_SENT'
                         raise
                     return dict(status='DIAGNOSE_OK', scope='screenshot-runtime-preflight', request_status='NOT_SENT')
-                return Adapter(frozen).handle(data)
-    result = guard(frozen, selftests, perform)
+                return Adapter(frozen, timings=timings).handle(data)
+
+    try:
+        frozen = json.loads((HERE/'frozen.json').read_text(encoding='utf-8'))
+        result = guard(frozen, check_selftests, perform)
+    except Exception as exc:
+        exc.timings_seconds = timings
+        raise
+    finally:
+        timings['end_to_end'] = round(time.perf_counter() - accepted, 3)
+    result['timings_seconds'] = timings
     sys.stdout.write(json.dumps(result, ensure_ascii=True)+'\n')
     return 0
 
@@ -368,6 +413,9 @@ if __name__ == '__main__':
         safe.add('QUERY_BINDING')
         reason = exc.args[0] if len(exc.args) == 1 and type(exc.args[0]) is str else ''
         code = reason if reason in safe or re.fullmatch(r'(?:SCREENSHOT|WARM)_[A-Z0-9_]{1,64}', reason) else 'TOOL_STOPPED'
-        print(json.dumps(dict(status='STOPPED', reason=code, automatic_retry=False,
-                              request_status=getattr(exc, 'request_status', 'UNKNOWN'))))
+        response = dict(status='STOPPED', reason=code, automatic_retry=False,
+                        request_status=getattr(exc, 'request_status', 'UNKNOWN'))
+        if hasattr(exc, 'timings_seconds'):
+            response['timings_seconds'] = exc.timings_seconds
+        print(json.dumps(response))
         sys.exit(1)

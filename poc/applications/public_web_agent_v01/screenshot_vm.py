@@ -393,31 +393,34 @@ def render(backend, cap, scan, job, runtime):
     vm = runtime['vm_name']
     started = time.perf_counter()
     with vm_capture_lock(runtime):
-        need(preflight() == runtime, 'SCREENSHOT_RUNTIME_CHANGED')
-        viso = prepare_disc(backend, cap, scan)
-        checksum = digest(cap / 'checksums.txt')
-        command(runtime, 'snapshot', vm, 'restore', runtime['snapshot_uuid'])
+        with backend.measure('vm_prepare'):
+            need(preflight() == runtime, 'SCREENSHOT_RUNTIME_CHANGED')
+            viso = prepare_disc(backend, cap, scan)
+            checksum = digest(cap / 'checksums.txt')
+            command(runtime, 'snapshot', vm, 'restore', runtime['snapshot_uuid'])
         started_vm = False
         try:
-            status = vm_state(runtime)
-            need(vm_configuration(runtime, status, 'saved') == runtime['boot_media']
-                 and status.get('OfflineOptical-1-0') == 'emptydrive', 'SCREENSHOT_TASK_MEDIA')
-            backend.binding.verify(cap, scan)
-            clear_serial(runtime)
-            command(runtime, 'startvm', vm, '--type', 'headless')
-            started_vm = True
-            change_task_disc(runtime, viso)
-            script = ("{ mkdir -p /mnt/fixtures; mount -o ro /dev/sr1 /mnt/fixtures && cd /mnt/fixtures "
-                      f"&& echo '{checksum}  checksums.txt' | sha256sum -c - && sh screenshot_guest.sh; "
-                      "echo SCREENSHOT_EXIT:$?; sync; poweroff -f; } > /dev/ttyS0 2>&1")
-            command(runtime, 'controlvm', vm, 'keyboardputstring', script)
-            command(runtime, 'controlvm', vm, 'keyboardputscancode', '1c', '9c')
-            raw = wait_for_frame(runtime['serial_path'])
-            (backend.evidence / 'guest_serial.txt').write_bytes(raw)
-            result, images = frame(raw, job)
+            with backend.measure('vm_render'):
+                status = vm_state(runtime)
+                need(vm_configuration(runtime, status, 'saved') == runtime['boot_media']
+                     and status.get('OfflineOptical-1-0') == 'emptydrive', 'SCREENSHOT_TASK_MEDIA')
+                backend.binding.verify(cap, scan)
+                clear_serial(runtime)
+                command(runtime, 'startvm', vm, '--type', 'headless')
+                started_vm = True
+                change_task_disc(runtime, viso)
+                script = ("{ mkdir -p /mnt/fixtures; mount -o ro /dev/sr1 /mnt/fixtures && cd /mnt/fixtures "
+                          f"&& echo '{checksum}  checksums.txt' | sha256sum -c - && sh screenshot_guest.sh; "
+                          "echo SCREENSHOT_EXIT:$?; sync; poweroff -f; } > /dev/ttyS0 2>&1")
+                command(runtime, 'controlvm', vm, 'keyboardputstring', script)
+                command(runtime, 'controlvm', vm, 'keyboardputscancode', '1c', '9c')
+                raw = wait_for_frame(runtime['serial_path'])
+                (backend.evidence / 'guest_serial.txt').write_bytes(raw)
+                result, images = frame(raw, job)
         finally:
-            cleanup(runtime, viso, started_vm=started_vm)
-            backend.binding.verify(cap, scan)
+            with backend.measure('vm_cleanup'):
+                cleanup(runtime, viso, started_vm=started_vm)
+                backend.binding.verify(cap, scan)
     backend.record.update(vm_final_state='poweroff', task_media_detached=True,
                           vm_seconds=round(time.perf_counter() - started, 3))
     screenshots = []

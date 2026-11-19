@@ -1,5 +1,6 @@
 """Offline checks for the public screenshot protocol and VirtualBox guards."""
 import base64
+from contextlib import nullcontext
 import copy
 import hashlib
 import json
@@ -164,7 +165,8 @@ class Tests(unittest.TestCase):
         cap.mkdir()
         (cap/'checksums.txt').write_bytes(b'Fixture checksums')
         restored = self.configuration | {'VMState': 'saved', 'nic1': 'nat'}
-        backend = SimpleNamespace(record={}, binding=Mock(), work=self.runtime['work_dir'])
+        backend = SimpleNamespace(record={}, binding=Mock(), work=self.runtime['work_dir'],
+                                  measure=Mock(side_effect=lambda _: nullcontext()))
         with patch.object(vm, 'preflight', return_value=self.runtime), \
              patch.object(vm, 'prepare_disc', return_value=self.runtime['work_dir']/'task.viso'), \
              patch.object(vm, 'vm_state', return_value=restored), patch.object(vm, 'cleanup') as cleanup, \
@@ -174,13 +176,16 @@ class Tests(unittest.TestCase):
             command.assert_called_once_with(self.runtime, 'snapshot', self.runtime['vm_name'],
                                             'restore', self.runtime['snapshot_uuid'])
             cleanup.assert_called_once_with(self.runtime, self.runtime['work_dir']/'task.viso', started_vm=False)
+            self.assertEqual([call.args[0] for call in backend.measure.call_args_list],
+                             ['vm_prepare', 'vm_render', 'vm_cleanup'])
 
     def test_late_iso_alias_blocks_serial_clear_and_vm_start(self):
         cap = self.runtime['work_dir'] / 'capsule'
         cap.mkdir()
         (cap/'checksums.txt').write_bytes(b'Fixture checksums')
         viso = self.runtime['work_dir'] / 'task.viso'
-        backend = SimpleNamespace(record={}, binding=Mock(), work=self.runtime['work_dir'])
+        backend = SimpleNamespace(record={}, binding=Mock(), work=self.runtime['work_dir'],
+                                  measure=lambda _: nullcontext())
         alias = self.runtime['serial_path']
         samefile = Path.samefile
 
@@ -222,7 +227,7 @@ class Tests(unittest.TestCase):
         cap = self.runtime['work_dir'] / 'capsule'
         cap.mkdir()
         (cap/'checksums.txt').write_bytes(b'Fixture checksums')
-        backend = SimpleNamespace(record={}, binding=Mock())
+        backend = SimpleNamespace(record={}, binding=Mock(), measure=Mock(side_effect=lambda _: nullcontext()))
         with patch.object(vm, 'preflight', return_value=self.runtime), \
              patch.object(vm, 'prepare_disc', return_value=self.runtime['work_dir']/'task.viso'), \
              patch.object(vm, 'command', side_effect=vm.VBoxFailure('SCREENSHOT_VM_COMMAND')) as command, \
@@ -232,6 +237,7 @@ class Tests(unittest.TestCase):
             command.assert_called_once_with(self.runtime, 'snapshot', self.runtime['vm_name'],
                                             'restore', self.runtime['snapshot_uuid'])
             cleanup.assert_not_called()
+            backend.measure.assert_called_once_with('vm_prepare')
 
     def test_cleanup_detaches_only_its_own_media(self):
         viso = self.runtime['work_dir'] / 'task.viso'

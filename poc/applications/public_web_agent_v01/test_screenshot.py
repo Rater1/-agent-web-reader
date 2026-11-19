@@ -128,19 +128,26 @@ class ScreenshotTests(unittest.TestCase):
                 self.assertEqual(list(job['maps']), [source])
                 self.assertEqual(job['maps'][source]['response_headers'], screenshot.response_headers(raw, 'html'))
                 self.assertEqual(json.loads((cap / 'job.json').read_text(encoding='utf-8')), job)
-                return dict(blocked_count=0, script_errors=0)
+                with _backend.measure('vm_render'):
+                    return dict(blocked_count=0, script_errors=0)
 
             runtime = {'work_dir': root}
-            app = screenshot.Backend((types.SimpleNamespace(render=render), runtime, broker), root)
+            timings = {'selftests': 2.5, 'preflight': 0.25}
+            app = screenshot.Backend((types.SimpleNamespace(render=render), runtime, broker), root, timings=timings)
 
             def receipt(target, _part):
                 return dict(path=str(target), verdict='OK', content_binding='full', evidence='eventlog',
                             **app.binding.snapshot(target))
 
-            with patch.object(app, 'declare'), patch.object(app, 'scan', side_effect=receipt):
+            with patch.object(app, 'declare'), patch.object(app, 'scan', side_effect=receipt), \
+                 patch.object(screenshot.time, 'perf_counter', side_effect=[1, 2, 2, 4, 4, 7, 7]):
                 result = app.capture('https://Example.COM:443')
                 self.assertEqual(result['source']['url'], source)
                 self.assertEqual(calls, [source])
+            self.assertEqual(timings, dict(selftests=2.5, preflight=0.25, acquire_and_scan=1,
+                                           stage_and_scan=2, vm_render=3))
+            self.assertEqual(json.loads((app.evidence / 'receipt.json').read_text(encoding='utf-8'))['timings_seconds'],
+                             timings)
 
             changed = screenshot.Backend((None, runtime, broker), root)
             with patch.object(changed, 'declare'), patch.object(changed, 'scan', side_effect=receipt):
