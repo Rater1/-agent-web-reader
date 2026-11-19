@@ -1,0 +1,14 @@
+{
+  "work_dir": "C:/agent-web-screenshot",
+  "vbox_path": "C:/Program Files/Oracle/VirtualBox/VBoxManage.exe",
+  "vm_name": "AgentWebReader-Screenshot",
+  "vm_config_path": "C:/agent-web-screenshot/AgentWebReader-Screenshot/AgentWebReader-Screenshot.vbox",
+  "state_path": "C:/agent-web-screenshot/AgentWebReader-Screenshot/Snapshots/REPLACE_WITH_SNAPSHOT.sav",
+  "serial_path": "C:/agent-web-screenshot/serial.txt",
+  "snapshot_uuid": "REPLACE_WITH_SNAPSHOT_UUID",
+  "snapshot_xml_sha256": "REPLACE_WITH_SNAPSHOT_XML_SHA256",
+  "state_sha256": "REPLACE_WITH_STATE_SHA256",
+  "state_bytes": 0,
+  "prepared_without_pages": false,
+  "operator_approved_live_runtime": false
+}

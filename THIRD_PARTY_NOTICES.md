@@ -11,6 +11,8 @@ runtime part of this distribution.
 | Beautiful Soup 4 | Guest HTML parsing | Separate; MIT is stated on the [official project page](https://www.crummy.com/software/BeautifulSoup/); exact APK metadata is included |
 | Alpine Linux / APK dependencies | Diskless guest and signed packages | Separate; per-package license metadata and official URLs are in `apk_download_receipt.json`; not one blanket license |
 | Oracle VirtualBox | VM boundary | Separate; consult the [official licensing page](https://www.virtualbox.org/wiki/Licensing_FAQ) for the version you install; no Extension Pack is required or included |
+| Chromium Headless Shell | Guest screenshot rendering | Separate; [Chromium licensing](https://chromium.googlesource.com/chromium/src/+/main/LICENSE) and the operator's signed Alpine package metadata |
+| Node.js | Guest screenshot control script | Separate; [Node.js licensing](https://nodejs.org/en/about/license) |
 | Microsoft Windows / Defender / curl | Trusted host acquisition and scan | Separate OS components; operators verify their local binary and permissions |
 | Tavily | Search API | External service with the operator's own account; [service terms](https://www.tavily.com/terms) apply; no key, SDK, account access or service sublicense is provided |
 

@@ -68,3 +68,17 @@ The CLI uses an atomic directory lock for live operations. This does not cover
 the legacy operator wizard or stop other tools from starting the VM. A process
 crash can leave a lock; recovery is an explicit operator action after inspecting
 that no operation remains, not automatic lock stealing.
+
+## Screenshot path
+
+The screenshot diagnostic and live operation share a local prerequisite check.
+The live host broker fetches one public HTTPS HTML response and up to eight
+initial same-origin scripts or styles. It binds raw bytes to a full scan,
+stages a read-only capsule, and restores a separate diskless VM from a verified
+clean snapshot. Its guest browser executes supplied assets under a non-root
+account. Its URL interceptor answers from the scanned capsule only and records
+blocked requests. The resulting excerpt and PNGs have fixed output limits.
+
+Each capture restores the snapshot, processes one URL, validates the guest
+output, powers off and detaches the task disc. It shares the CLI operation
+lock with search/read. Screenshot scanning and VM configuration stay local.

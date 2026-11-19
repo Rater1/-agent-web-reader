@@ -1,5 +1,8 @@
 # Windows live reference setup
 
+For the optional dynamic screenshot path, use the separate
+[screenshot VM setup](SCREENSHOT_SETUP.md).
+
 The portable fixture demo is the reproducible first step. This live recipe is
 for an operator already familiar with VirtualBox and Defender; the public
 adaptation has not been rerun with a newly provisioned VM. No installer runs

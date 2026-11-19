@@ -70,3 +70,12 @@ The related private implementation observed about 50–51 seconds for a two-page
 single-boot run, compared with earlier 48–49 second single-page cached runs.
 Those were different versions and a limited engineering observation, not a
 repeated benchmark or a latency guarantee for this public adaptation.
+
+## Screenshot port in 0.3
+
+The bounded reference path covers trusted operator configuration, guarded
+host acquisition, scanned file binding, PNG and result validation, and
+isolated VM cleanup. Its release checks exercise the public code with
+synthetic inputs and mocked controls. Earlier live testing used a separately
+configured local runtime and a different source version. A fresh public
+runtime and live deployment remain to be independently reproduced.

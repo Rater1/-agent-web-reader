@@ -1,5 +1,13 @@
 # Changes
 
+## 0.3 — 2026-11-19
+
+- Add an optional public HTTPS screenshot operation using an operator-provisioned offline browser VM.
+- Return three bounded PNG views, a text excerpt, and blocked-resource and truncation indicators on success.
+- Restore one clean snapshot per screenshot. Power off the guest and detach the task disc when done.
+- Add a network-free screenshot diagnostic and document the trusted Windows setup.
+- Keep screenshot reservations separate from search and static reads.
+
 ## 0.2 — 2026-11-10
 
 - Add `read_many` for 1–5 distinct ranks, one body reservation per search.

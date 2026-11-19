@@ -1,5 +1,6 @@
 .local/
 runtime.local.json
+screenshot.local.json
 __pycache__/
 *.py[cod]
 *.log
@@ -8,6 +9,8 @@ __pycache__/
 *.apk
 *.vdi
 *.vbox*
+*.sav
+*.png
 *.zip
 poc/download_gate/_dl_manifest.jsonl
 .env

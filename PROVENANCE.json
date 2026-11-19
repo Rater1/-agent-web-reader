@@ -104,8 +104,8 @@
   {
     "path": "poc/applications/public_web_agent_v01/agent_reader.py",
     "original_sha256": "6d354541aa798a757dfa7a7a678f2cbfef69b5559e06debf681b227c80b43284",
-    "public_sha256": "b0f08b85a9f73e765f34cda8a868c0a3f4640ff91a63f614fd3ac589fc27c38d",
-    "adaptation": "Portable synthetic fixtures, same-freeze backend, pre-key runtime configuration; 0.2 bounded batch/public runtime adaptation"
+    "public_sha256": "fbb5d566f2fcf287ed933a467bc90f233298ca6eb1ec10fa19157aa5f1c83d92",
+    "adaptation": "Extend the public CLI with optional bounded screenshot and diagnostic operations."
   },
   {
     "path": "poc/applications/public_web_agent_v01/test_agent.py",
@@ -158,8 +158,8 @@
   {
     "path": "poc/applications/public_web_agent_v01/source_paths.json",
     "original_sha256": "8a447e468084def743642d959727df54083c172efceea00fa94a0640a1c1ac9c",
-    "public_sha256": "7d52c1c91c318332da48d41d43440d74b530b46325f8efc8dcb2a7bdc28b9602",
-    "adaptation": "0.2 own-project batch source adapted for portable fixtures and configurable public runtime"
+    "public_sha256": "c7f4ec13ed44f55214ee21ecf962870fddccbd951a0b555a4a6a0cc5d5b095f4",
+    "adaptation": "Bind the portable screenshot sources and offline tests."
   },
   {
     "path": "poc/applications/public_web_agent_v01/test_batch.py",
@@ -178,5 +178,39 @@
     "original_sha256": null,
     "public_sha256": "00736b4aa12972182bc73d1f1bd15ec70ed2e9432ef5b2d215a24a91f32228ca",
     "adaptation": "0.2 own-project batch source adapted for portable fixtures and configurable public runtime"
+  },
+  {
+    "path": "poc/applications/public_web_agent_v01/screenshot_backend.py",
+    "public_sha256": "23eda550f2231a52c3e883492d3cc254bfd82134af09879d5f07f00e4167b866",
+    "adaptation": "Port acquisition to the public fetch broker, scan gate and opt-in runtime.",
+    "original_sha256": "c128dd713653caa0b6266878e697344cb31850c5a30668452d691ca2e2cf6771"
+  },
+  {
+    "path": "poc/applications/public_web_agent_v01/screenshot_vm.py",
+    "public_sha256": "07d085ad22b68590a4e24c059106fa59d3d181b78dbd7fc8fb942acebba01938",
+    "adaptation": "Port clean-snapshot handling to reader-provisioned VM and exact local configuration.",
+    "original_sha256": "6ba2812c9bc4e8c51648b39d295ad7f08e8908726149622222731ce6840870e3"
+  },
+  {
+    "path": "poc/applications/public_web_agent_v01/screenshot_guest.mjs",
+    "public_sha256": "ec16b8587e43078a3906cd528a2031d75a2c2a3a03b7581f9ef8afbb4b2fd28b",
+    "adaptation": "Reuse the project-owned bounded CDP screenshot guest.",
+    "original_sha256": "ec16b8587e43078a3906cd528a2031d75a2c2a3a03b7581f9ef8afbb4b2fd28b"
+  },
+  {
+    "path": "poc/applications/public_web_agent_v01/screenshot_warm_task.sh",
+    "public_sha256": "86d8322549f63a62e8c824d466aff511b0f78b59c29d47b96bc9fa9a265b97a3",
+    "adaptation": "Reuse the project-owned offline guest launcher with LF script lines.",
+    "original_sha256": "18ed1edd9c96c36fed747c551c1b505d5cb9b9521884e1d5a60d3adb772d9aaf"
+  },
+  {
+    "path": "poc/applications/public_web_agent_v01/test_screenshot.py",
+    "public_sha256": "b9d748be9db9d80056341de95fd88f0b2a4004d8ff5622c32013ade5d16ec1a9",
+    "adaptation": "Public offline screenshot routing and resource-policy tests."
+  },
+  {
+    "path": "poc/applications/public_web_agent_v01/test_screenshot_vm.py",
+    "public_sha256": "d7ba57b2cddd0c4fb4eb7e5823e392fffed7b66a44ce252b677559ba295f803e",
+    "adaptation": "Public mock preflight, snapshot, image and cleanup tests."
   }
 ]

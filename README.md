@@ -1,9 +1,10 @@
 # Agent Web Reader
 
-A small JSON tool that lets an agent search public pages, select one to five results,
-and receive a bounded text excerpt. The reference live path acquires bytes on
-the host, scans them, and parses them in a diskless Linux VM with no network
-interfaces. The API credential stays on the trusted host.
+A small JSON tool for public search, bounded text excerpts, and screenshots of
+public HTTPS pages. The Windows reference path acquires and scans bytes on the
+host, then uses separate diskless Linux VMs for static parsing and screenshot
+rendering. Both guests run without network interfaces. The search credential
+stays on the trusted host.
 
 **Experimental source candidate.** The portable fixture demo works without an
 API key, VM, scanner, proxy, or third-party Python package. Live operation needs
@@ -11,6 +12,7 @@ the Windows setup below; this is not a one-command cross-platform sandbox.
 
 [中文说明](README.zh-CN.md) · [Architecture](docs/ARCHITECTURE.md) ·
 [Windows live setup](docs/LIVE_SETUP.md) · [Agent routing](docs/AGENT_USAGE.md) ·
+[Screenshot setup](docs/SCREENSHOT_SETUP.md) ·
 [Tests and limitations](docs/VALIDATION.md)
 
 ## Try it offline
@@ -59,6 +61,17 @@ expires after two hours. One body-read reservation is allowed per search ID: eit
 it, and further pages cannot be appended to the same session. The default local cap is 20 search
 reservations per local calendar day. This is not an account-wide billing cap.
 
+Use a separate screenshot request for a known public HTTPS URL.
+
+```json
+{"op":"screenshot","url":"https://quotes.toscrape.com/js/"}
+```
+
+Inspect the local `SCREENSHOT_READY` PNG paths alongside the excerpt and its
+resource and truncation flags. The default cap is four screenshot reservations
+per local day. Each request restores and powers off the dedicated screenshot
+VM. No search credential or search ID is needed. [Setup and limits](docs/SCREENSHOT_SETUP.md)
+
 ## Why this exists
 
 Search APIs supply discovery; HTML parsers supply text extraction. This project
@@ -66,9 +79,9 @@ assembles those parts into an agent-facing workflow with explicit acquisition,
 scan/content binding, offline parsing, bounded output, and failure behavior.
 It is a reference for inspecting those boundaries, not a new search engine.
 
-The own-source code is MIT licensed. Operators supply their own Tavily account,
-runtime and proxy, and retain responsibility for their credentials and service
-terms. No SDK, search index, VM image, APK, or commercial service is included.
+The project's own source is MIT licensed. Operators supply the configured VM
+and host transport. Keyword search requires an operator-provided Tavily account
+and its service terms. [Third-party notices](THIRD_PARTY_NOTICES.md)
 
 ## Live path and current limits
 
@@ -77,11 +90,12 @@ an approved local curl binary, the pinned Alpine image and APK set, and an
 explicit `runtime.local.json`. See [the setup recipe](docs/LIVE_SETUP.md).
 No credential is requested by the fixture demo. There is no automatic installer.
 
-Supported: basic public-keyword search and selected static HTTPS UTF-8 HTML.
-Not supported: redirects, login pages, JavaScript execution, PDF, arbitrary
-URLs, attachments, or compressed page responses. HTML input is limited to
-1 MiB; text is an excerpt of at most 4,000 characters and may include navigation
-or cut through a code block. Source and truncation fields remain visible.
+The parser supports static HTTPS UTF-8 HTML discovered by public-keyword
+search. Screenshot rendering supports one public HTTPS HTML page and its
+bounded initial same-origin JavaScript and CSS. Both paths exclude redirects,
+login pages, PDF, attachments, and compressed page responses. HTML input is
+limited to 1 MiB and the text excerpt to 4,000 characters. Source and truncation
+fields remain visible.
 
 Query binding permits only removal of a leading `site:host[/path]` operator
 from the provider echo, with all other terms unchanged and every result in that
@@ -93,15 +107,15 @@ one VM boot for the entire body batch, with a separate bounded worker per page.
 Search is a separate VM cycle; there is no resident service. A busy or stale CLI
 lock stops new live operations rather than being automatically removed.
 
-The public adaptation has been tested with fixtures and fake backends, **not
-rerun against the live service/VM**. The earlier private integration is a
-different source version and is not a live validation of this bundle.
+The public bundle is validated with fixture and host-side checks. See the
+[validation record](docs/VALIDATION.md) for the scope of earlier live evidence
+and the remaining public deployment checks.
 
 ## Security boundary
 
 The host acquisition code, operator configuration, VM manager, scanner and
 agent's host privileges are trusted. A page is data and cannot directly add
-URLs or commands to the fetch protocol. A zero-NIC parser VM reduces its
+URLs or commands to the fetch protocol. A zero-NIC guest limits its
 available channels; it is not a proof against hypervisor compromise.
 
 Extracted prose can still contain prompt injection. This tool does not decide

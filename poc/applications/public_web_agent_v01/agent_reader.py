@@ -19,6 +19,7 @@ REPO = HERE.parents[2]
 READER = REPO/'poc/applications/public_web_reader_v01'
 STATE = REPO/'.local/public_web_agent_v01'
 MAX_DAILY_SEARCHES = 20
+MAX_DAILY_SCREENSHOTS = 4
 MAX_AGE = 7200
 QUERY_REPLAY = 'Python URL parsing documentation'
 FIXTURES = HERE / 'fixtures'
@@ -44,6 +45,13 @@ def load_reader():
     return reader
 
 
+def load_screenshot():
+    spec = importlib.util.spec_from_file_location('agent_screenshot', HERE / 'screenshot_backend.py')
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
 def request(text):
     require(type(text) is str and len(text.encode('utf-8')) <= 4096, 'REQUEST_SIZE')
     def unique(pairs):
@@ -57,6 +65,9 @@ def request(text):
     except (ValueError, RecursionError):
         raise Stopped('REQUEST_JSON') from None
     require(type(data) is dict, 'REQUEST_SCHEMA')
+    if data.get('op') == 'screenshot':
+        require(set(data) == {'op', 'url'} and type(data['url']) is str, 'REQUEST_SCHEMA')
+        return data
     if data.get('op') == 'search':
         require(set(data) == {'op', 'query'} and type(data['query']) is str, 'REQUEST_SCHEMA')
         q = data['query']
@@ -250,7 +261,37 @@ class Adapter:
         return dict(status='READ_MANY_OK', mode='fixture' if self.replay else 'live', search_id=search_id,pages=pages,
                     page_count=len(pages),external_content_is_untrusted=True)
 
+    def screenshot(self, source):
+        try:
+            require(not self.replay, 'SCREENSHOT_FIXTURE_UNSUPPORTED')
+            module = load_screenshot()
+            source = module.url(source)
+            prepared = module.preflight()
+            folder = self.root / 'screenshot_budget'
+            folder.mkdir(exist_ok=True)
+            day = datetime.datetime.now().date().isoformat()
+            for number in range(MAX_DAILY_SCREENSHOTS):
+                try:
+                    write_json(folder / f'{day}-{number:02d}.json',
+                               dict(reserved_at=self.clock(), status='RESERVED_MAY_HAVE_SENT'))
+                    break
+                except FileExistsError:
+                    continue
+            else:
+                raise Stopped('SCREENSHOT_DAILY_BUDGET_EXHAUSTED')
+            backend = module.Backend(prepared, self.root)
+        except Exception as exc:
+            exc.request_status = 'NOT_SENT'
+            raise
+        try:
+            return backend.capture(source)
+        except Exception as exc:
+            exc.request_status = 'ATTEMPTED' if backend.record['network_attempts'] else 'NOT_SENT'
+            raise
+
     def handle(self, data):
+        if data['op'] == 'screenshot':
+            return self.screenshot(data['url'])
         if data['op']=='search':return self.search(data['query'])
         return self.read_many(data['search_id'],data['ranks']) if data['op']=='read_many' else self.read(data['search_id'],data['rank'])
 
@@ -266,7 +307,7 @@ def operation_lock(root=STATE):
 def selftests():
     env = dict(SystemRoot=r'C:\Windows', WINDIR=r'C:\Windows', PATH=r'C:\Windows\System32')
     for opt in (False, True):
-        for name in ('test_agent.py','test_batch.py'):
+        for name in ('test_agent.py','test_batch.py','test_screenshot.py','test_screenshot_vm.py'):
             child = subprocess.run([sys.executable, '-I', '-S', '-B', *(['-O'] if opt else []), str(HERE/name)],
                                    env=env, capture_output=True, timeout=30)
             if child.returncode:
@@ -284,19 +325,31 @@ def guard(frozen, tests, protected):
 
 def main():
     if sys.argv[1:] == ['--describe']:
-        print(json.dumps(dict(tool='local_public_web', transport='JSON stdin/stdout', operations=['search', 'read', 'read_many'],max_pages_per_batch=5,
-                              replay_query=QUERY_REPLAY, max_daily_searches=MAX_DAILY_SEARCHES)))
+        print(json.dumps(dict(tool='local_public_web', transport='JSON stdin/stdout',
+                              operations=['search', 'read', 'read_many', 'screenshot'],max_pages_per_batch=5,
+                              replay_query=QUERY_REPLAY, max_daily_searches=MAX_DAILY_SEARCHES,
+                              max_daily_screenshots=MAX_DAILY_SCREENSHOTS, screenshot_diagnostic_flag='--diagnose-screenshot')))
         return 0
-    require(sys.argv[1:] in ([], ['--fixture']), 'CLI_SCOPE')
-    raw = sys.stdin.buffer.read(4097)
-    require(len(raw) <= 4096, 'REQUEST_SIZE')
-    data = request(raw.decode('utf-8'))
+    require(sys.argv[1:] in ([], ['--fixture'], ['--diagnose-screenshot']), 'CLI_SCOPE')
+    diagnose = sys.argv[1:] == ['--diagnose-screenshot']
+    if not diagnose:
+        raw = sys.stdin.buffer.read(4097)
+        require(len(raw) <= 4096, 'REQUEST_SIZE')
+        data = request(raw.decode('utf-8'))
     frozen = json.loads((HERE/'frozen.json').read_text(encoding='utf-8'))
     def perform():
         # The old driver prints progress. Keep the machine response as one JSON.
         with contextlib.redirect_stdout(io.StringIO()):
             if sys.argv[1:]==['--fixture']:return Adapter(frozen,replay=True).handle(data)
-            with operation_lock():return Adapter(frozen).handle(data)
+            with operation_lock():
+                if diagnose:
+                    try:
+                        load_screenshot().preflight()
+                    except Exception as exc:
+                        exc.request_status = 'NOT_SENT'
+                        raise
+                    return dict(status='DIAGNOSE_OK', scope='screenshot-runtime-preflight', request_status='NOT_SENT')
+                return Adapter(frozen).handle(data)
     result = guard(frozen, selftests, perform)
     sys.stdout.write(json.dumps(result, ensure_ascii=True)+'\n')
     return 0
@@ -312,6 +365,8 @@ if __name__ == '__main__':
                 'SEARCH_RECEIPT_CHANGED', 'SEARCH_RESULT_CHANGED', 'SESSION_RECEIPT_SCOPE', 'REPLAY_QUERY_ONLY', 'REPLAY_CHANGED', 'CLI_SCOPE',
                 'DUPLICATE_PAGE_URL','FIXTURE_CHANGED','FIXTURE_SCOPE','RUNTIME_NOT_CONFIGURED','RUNTIME_CONFIG_INVALID','LIVE_WINDOWS_ONLY','TOOL_BUSY_OR_STALE_LOCK','BATCH_RESULT_COUNT'}
         safe.add('QUERY_BINDING')
-        code = exc.args[0] if len(exc.args) == 1 and type(exc.args[0]) is str and exc.args[0] in safe else 'TOOL_STOPPED'
-        print(json.dumps(dict(status='STOPPED', reason=code, automatic_retry=False, request_status='UNKNOWN')))
+        reason = exc.args[0] if len(exc.args) == 1 and type(exc.args[0]) is str else ''
+        code = reason if reason in safe or re.fullmatch(r'(?:SCREENSHOT|WARM)_[A-Z0-9_]{1,64}', reason) else 'TOOL_STOPPED'
+        print(json.dumps(dict(status='STOPPED', reason=code, automatic_retry=False,
+                              request_status=getattr(exc, 'request_status', 'UNKNOWN'))))
         sys.exit(1)
