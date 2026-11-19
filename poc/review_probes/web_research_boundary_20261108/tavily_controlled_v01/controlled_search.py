@@ -16,7 +16,7 @@ import threading
 
 HERE = Path(__file__).resolve().parent
 ROOT = HERE.parent
-BASE_HASH = '304b67b398ce1e2f9f38d22fcd2eb6989339446cd5ec15d55f44fb2f01f075ed'
+BASE_HASH = 'ab1a71b33a49e440bf34f997e6ede6ed20dda7cb5fad2bbd676c2ed8876e0c81'
 CONTRACT_HASH = '1b20c538be775b73746659eb98007df8eb06bb531318c5468e0d427bceeedcff'
 ENDPOINT = 'https://api.tavily.com/search'
 HOST = 'api.tavily.com'

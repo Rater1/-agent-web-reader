@@ -1,5 +1,12 @@
 # Changes
 
+## 0.3.1 — 2026-11-19
+
+- Disable curl URL globbing for all broker requests.
+- Serialize screenshot jobs by VM UUID, protect boot media from serial truncation, and wait for power-off before detaching the job disc.
+- Use canonical browser URL keys, honor supported document base URLs, and retain approved response policy headers in offline replay.
+- Reject attachments and encoded screenshot responses before replay.
+
 ## 0.3 — 2026-11-19
 
 - Add an optional public HTTPS screenshot operation using an operator-provisioned offline browser VM.

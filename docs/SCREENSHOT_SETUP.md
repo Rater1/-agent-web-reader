@@ -104,6 +104,11 @@ Turn `prepared_without_pages` and `operator_approved_live_runtime` on after
 verifying the clean state and dedicated VM. Treat any runtime mismatch as a
 signal to inspect the registered VM, exact snapshot and saved bytes again.
 Keep the VM powered off between requests.
+Screenshot drivers targeting the same registered VM coordinate through a
+UUID-named lock directory in its configuration directory, including across
+checkouts. A stopped job must prove that the VM powered off and that its
+task disc was detached. If the process died with a lock in place, inspect
+the VM and task drive before clearing the stale lock.
 
 VirtualBox can rewrite transient guest properties during an initial restore or
 media detachment. If the snapshot hash changes, inspect the exact XML difference
@@ -125,4 +130,10 @@ The host obtains at most one HTML page and eight initial same-origin scripts
 or styles. The guest receives only the scanned job bytes. Navigation through
 redirects, login, runtime API requests and cross-origin assets are outside the
 operation's scope. The output can be partial even when the renderer succeeds.
+Capture keys use a canonical HTTPS URL. For initial scripts and styles, the
+collector honors the supported document base and still enforces the original
+document origin. Responses must be inline and identity-encoded. Offline replay
+preserves an allowlist of policy headers, including repeated Content Security
+Policy fields. Completeness flags describe acquisition and replay observations
+within this scope.
 [Agent routing](AGENT_USAGE.md#screenshot-request)

@@ -8,8 +8,8 @@
   {
     "path": "poc/review_probes/web_research_boundary_20261108/tavily_controlled_v01/controlled_search.py",
     "original_sha256": "8d3c244815c95732a6f1cc762c47ed477c3684aa3252a41e8e5f06e24818c9a7",
-    "public_sha256": "d46fb66977596b8f4dfafacd44654b892f5407b1bdbdfb9cd90fcd24bfdd41f8",
-    "adaptation": "Rebind the trusted public-fetch broker source hash after replacing its local runtime configuration"
+    "public_sha256": "b9ea06f582b90b42067079a309d7ccc0d73ff5f18c07a4e3363e07a474542551",
+    "adaptation": "Rebind the trusted public-fetch broker after disabling curl URL globbing."
   },
   {
     "path": "poc/review_probes/web_research_boundary_20261108/search_extract_v01/response_contract.py",
@@ -86,8 +86,8 @@
   {
     "path": "poc/review_probes/web_research_boundary_20261108/public_fetch_broker.py",
     "original_sha256": "2d7e9fcfd7bc2180c80d5a1e73489304403537c88b8bcc33bbaf13f3130aae2f",
-    "public_sha256": "304b67b398ce1e2f9f38d22fcd2eb6989339446cd5ec15d55f44fb2f01f075ed",
-    "adaptation": "Replace private curl/proxy fingerprint with operator configuration"
+    "public_sha256": "ab1a71b33a49e440bf34f997e6ede6ed20dda7cb5fad2bbd676c2ed8876e0c81",
+    "adaptation": "Disable curl URL globbing for every broker transfer."
   },
   {
     "path": "poc/download_gate/dl_gate.py",
@@ -104,8 +104,8 @@
   {
     "path": "poc/applications/public_web_agent_v01/agent_reader.py",
     "original_sha256": "6d354541aa798a757dfa7a7a678f2cbfef69b5559e06debf681b227c80b43284",
-    "public_sha256": "fbb5d566f2fcf287ed933a467bc90f233298ca6eb1ec10fa19157aa5f1c83d92",
-    "adaptation": "Extend the public CLI with optional bounded screenshot and diagnostic operations."
+    "public_sha256": "656e2cd44160369dc3f837af301bb63e45d6121918591944df611bff5e2ecce0",
+    "adaptation": "Run the screenshot transport regression in the source guard."
   },
   {
     "path": "poc/applications/public_web_agent_v01/test_agent.py",
@@ -158,8 +158,8 @@
   {
     "path": "poc/applications/public_web_agent_v01/source_paths.json",
     "original_sha256": "8a447e468084def743642d959727df54083c172efceea00fa94a0640a1c1ac9c",
-    "public_sha256": "c7f4ec13ed44f55214ee21ecf962870fddccbd951a0b555a4a6a0cc5d5b095f4",
-    "adaptation": "Bind the portable screenshot sources and offline tests."
+    "public_sha256": "99ccee4240e5fb3bf8a9aee361fead492ffc1ae156cf064c546115117b08b5aa",
+    "adaptation": "Bind portable code and offline transport tests."
   },
   {
     "path": "poc/applications/public_web_agent_v01/test_batch.py",
@@ -181,20 +181,20 @@
   },
   {
     "path": "poc/applications/public_web_agent_v01/screenshot_backend.py",
-    "public_sha256": "23eda550f2231a52c3e883492d3cc254bfd82134af09879d5f07f00e4167b866",
-    "adaptation": "Port acquisition to the public fetch broker, scan gate and opt-in runtime.",
+    "public_sha256": "bb6f5160b1f483f633af6f97bb8f191ca951d9f236cf5348e0d852442f6f067b",
+    "adaptation": "Canonical URL keys, first document base, and scanned response-policy binding.",
     "original_sha256": "c128dd713653caa0b6266878e697344cb31850c5a30668452d691ca2e2cf6771"
   },
   {
     "path": "poc/applications/public_web_agent_v01/screenshot_vm.py",
-    "public_sha256": "07d085ad22b68590a4e24c059106fa59d3d181b78dbd7fc8fb942acebba01938",
-    "adaptation": "Port clean-snapshot handling to reader-provisioned VM and exact local configuration.",
+    "public_sha256": "0db2e4fcd3b922f0b05e03ba921537c30ae7ea8d89581d5044fb063ad0dba137",
+    "adaptation": "Add boot-media identity checks, per-VM locking, and bounded owned cleanup.",
     "original_sha256": "6ba2812c9bc4e8c51648b39d295ad7f08e8908726149622222731ce6840870e3"
   },
   {
     "path": "poc/applications/public_web_agent_v01/screenshot_guest.mjs",
-    "public_sha256": "ec16b8587e43078a3906cd528a2031d75a2c2a3a03b7581f9ef8afbb4b2fd28b",
-    "adaptation": "Reuse the project-owned bounded CDP screenshot guest.",
+    "public_sha256": "aa58a9fbc19a3e2d97df68048cfd8c9f37c54958ad004cbe6984a73777297775",
+    "adaptation": "Replay allowlisted scanned response headers, retaining repeated CSP fields.",
     "original_sha256": "ec16b8587e43078a3906cd528a2031d75a2c2a3a03b7581f9ef8afbb4b2fd28b"
   },
   {
@@ -205,12 +205,17 @@
   },
   {
     "path": "poc/applications/public_web_agent_v01/test_screenshot.py",
-    "public_sha256": "b9d748be9db9d80056341de95fd88f0b2a4004d8ff5622c32013ade5d16ec1a9",
-    "adaptation": "Public offline screenshot routing and resource-policy tests."
+    "public_sha256": "3b1358634c594ccece02e8ccf18cfc92084d663d52f2fb36402d9758bb83dfc3",
+    "adaptation": "Add canonical URL, initial asset and response-policy regressions."
   },
   {
     "path": "poc/applications/public_web_agent_v01/test_screenshot_vm.py",
-    "public_sha256": "d7ba57b2cddd0c4fb4eb7e5823e392fffed7b66a44ce252b677559ba295f803e",
-    "adaptation": "Public mock preflight, snapshot, image and cleanup tests."
+    "public_sha256": "0a5a9999b0340d4c7bfab7af42ecbf35ed8107bf8ac70ae18b0118f905ce0262",
+    "adaptation": "Add mock boot ISO, lock, and power-off transition regressions."
+  },
+  {
+    "path": "poc/applications/public_web_agent_v01/test_screenshot_transport.py",
+    "public_sha256": "86a3a1129892b9b173933519ef5ca09c8c0ce5647c26c3d04c9c160251b18ad8",
+    "adaptation": "Public mocked subprocess test for a single URL with curl globbing disabled."
   }
 ]

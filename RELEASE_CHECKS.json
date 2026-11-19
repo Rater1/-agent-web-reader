@@ -1,8 +1,8 @@
 {
-  "package_revision": "agent-web-reader-public-v0.3.0",
+  "package_revision": "agent-web-reader-public-v0.3.1",
   "python": "3.12.10",
-  "source_count": 36,
-  "source_freeze_sha256": "7f4564bf70f1afadf65e8341465df6fe0b233c65706448bb48a3dedfcb535360",
+  "source_count": 37,
+  "source_freeze_sha256": "a1c1b5575bbb3afaea52936cb74b29204755ade3c88bde80d6ee72a1e44c4832",
   "clean_copy_offline_tests": {
     "test_agent.py": {
       "normal": 19,
@@ -13,12 +13,16 @@
       "optimized": 17
     },
     "test_screenshot.py": {
-      "normal": 7,
-      "optimized": 7
+      "normal": 14,
+      "optimized": 14
     },
     "test_screenshot_vm.py": {
-      "normal": 7,
-      "optimized": 7
+      "normal": 15,
+      "optimized": 15
+    },
+    "test_screenshot_transport.py": {
+      "normal": 1,
+      "optimized": 1
     }
   },
   "fixture_demo_both_modes": "PASS",
@@ -28,5 +32,6 @@
   "credential_reads": 0,
   "network_reads": 0,
   "vm_runs": 0,
-  "public_port_live_vm_tested": false
+  "public_port_live_vm_tested": false,
+  "node_guest_syntax_check": "PASS"
 }

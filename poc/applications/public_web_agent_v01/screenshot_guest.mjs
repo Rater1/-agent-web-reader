@@ -43,7 +43,7 @@ try{
  ws.addEventListener('error',()=>{if(!closing)requestError='WEBSOCKET_ERROR';});
  ws.addEventListener('message',event=>{const m=JSON.parse(event.data);if(m.id&&pending.has(m.id)){const p=pending.get(m.id);pending.delete(m.id);clearTimeout(p.timer);m.error?p.reject(new Error('CDP_COMMAND')):p.resolve(m.result);}else if(m.method==='Runtime.exceptionThrown'){report.script_errors++;}else if(m.method==='Fetch.requestPaused'){
    (async()=>{const {requestId,request}=m.params;const r=request.method==='GET'&&Object.hasOwn(job.maps,request.url)?job.maps[request.url]:null;if(!r){report.blocked_count++;if(report.blocked_requests.length<32){let u;try{const p=new URL(request.url);u=p.protocol==='https:'?request.url.slice(0,512):p.protocol;}catch{u='invalid-url';}report.blocked_requests.push({url:u,type:m.params.resourceType,method:request.method});}await send('Fetch.failRequest',{requestId,errorReason:'BlockedByClient'},m.sessionId);return;}
-    const b=await fs.readFile(base+'/'+r.body);need(hash(b)===r.sha256,'FULFILL_HASH');report.fulfilled++;await send('Fetch.fulfillRequest',{requestId,responseCode:200,responseHeaders:[{name:'Content-Type',value:r.content_type},{name:'Cache-Control',value:'no-store'}],body:b.toString('base64')},m.sessionId);
+    const b=await fs.readFile(base+'/'+r.body);need(hash(b)===r.sha256,'FULFILL_HASH');report.fulfilled++;await send('Fetch.fulfillRequest',{requestId,responseCode:200,responseHeaders:[...r.response_headers,{name:'Cache-Control',value:'no-store'}],body:b.toString('base64')},m.sessionId);
    })().catch(()=>{requestError='FETCH_HANDLER';});
  }});
  report.browser_version=await send('Browser.getVersion');await send('Browser.setDownloadBehavior',{behavior:'deny'});

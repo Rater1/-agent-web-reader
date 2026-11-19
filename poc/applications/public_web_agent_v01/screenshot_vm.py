@@ -1,9 +1,11 @@
 """Run one scanned screenshot task in an operator-provisioned offline snapshot."""
 import base64
 import binascii
+from contextlib import contextmanager
 import ctypes
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import struct
@@ -18,6 +20,7 @@ ROOT = Path(__file__).resolve().parents[3]
 CONFIG = ROOT / 'screenshot.local.json'
 MAX_SERIAL = 2 * 1024**2
 MEMORY_FLOOR = 4608 * 1024**2
+SHUTDOWN_POLLS = 10
 IMAGE_NAMES = ('page_full.png', 'page_top.png', 'page_bottom.png')
 FIELDS = {'work_dir', 'vbox_path', 'vm_name', 'vm_config_path', 'state_path', 'serial_path',
           'snapshot_uuid', 'snapshot_xml_sha256', 'state_sha256', 'state_bytes',
@@ -206,6 +209,27 @@ def vm_configuration(runtime, status, vm_state_name):
     return path
 
 
+def validate_serial(runtime, boot_media):
+    serial = safe_path(str(runtime['serial_path']))
+    protected = (boot_media, runtime['vm_config_path'], runtime['state_path'], runtime['vbox_path'])
+    need(serial not in protected and (not serial.exists() or serial.is_file()), 'SCREENSHOT_SERIAL_PATH')
+    if serial.exists():
+        need(not any(path.is_file() and serial.samefile(path) for path in protected), 'SCREENSHOT_SERIAL_PATH')
+    return serial, protected
+
+
+def clear_serial(runtime):
+    serial, protected = validate_serial(runtime, runtime['boot_media'])
+    if not serial.exists():
+        with serial.open('xb'):
+            return
+    with serial.open('r+b') as stream:
+        info = os.fstat(stream.fileno())
+        need(not any(path.is_file() and os.path.samestat(info, path.stat()) for path in protected),
+             'SCREENSHOT_SERIAL_PATH')
+        stream.truncate(0)
+
+
 def preflight():
     """Bind the clean snapshot, boot disc and VM before any public GET."""
     runtime = read_runtime()
@@ -214,7 +238,24 @@ def preflight():
     status = vm_state(runtime)
     boot = vm_configuration(runtime, status, 'poweroff')
     need(status.get('OfflineOptical-1-0') == 'emptydrive', 'SCREENSHOT_TASK_MEDIA')
+    validate_serial(runtime, boot)
     return {**runtime, 'boot_media': boot, 'vm_uuid': status['UUID']}
+
+
+@contextmanager
+def vm_capture_lock(runtime):
+    """Serialize captures using the registered VM directory, shared by checkouts."""
+    config = safe_path(str(runtime['vm_config_path']))
+    vm_uuid = str(uuid.UUID(runtime['vm_uuid']))
+    lock = config.parent / f'.agent-web-screenshot-{vm_uuid}.lock'
+    try:
+        lock.mkdir()
+    except FileExistsError:
+        raise ValueError('SCREENSHOT_VM_BUSY_OR_STALE_LOCK') from None
+    try:
+        yield
+    finally:
+        lock.rmdir()
 
 
 def frame(raw, job):
@@ -308,28 +349,39 @@ def change_task_disc(runtime, medium):
             '--port', '1', '--device', '0', '--type', 'dvddrive', '--medium', medium)
 
 
-def cleanup(runtime, viso):
+def owned_vm_state(runtime, viso):
     status = vm_state(runtime)
     vm_binding(runtime, status)
+    attached = status.get('OfflineOptical-1-0')
+    need(attached == 'emptydrive' or (attached and safe_path(attached) == viso), 'SCREENSHOT_TASK_MEDIA')
+    return status
+
+
+def wait_for_shutdown(runtime, viso, status):
+    for _ in range(SHUTDOWN_POLLS):
+        if status.get('VMState') not in ('running', 'stopping'):
+            break
+        time.sleep(.5)
+        status = owned_vm_state(runtime, viso)
+    return status
+
+
+def cleanup(runtime, viso, *, started_vm):
+    status = owned_vm_state(runtime, viso)
+    need(started_vm or status.get('VMState') != 'running', 'SCREENSHOT_VM_OWNERSHIP')
+    status = wait_for_shutdown(runtime, viso, status)
     if status.get('VMState') == 'running':
-        for _ in range(10):
-            time.sleep(.5)
-            status = vm_state(runtime)
-            vm_binding(runtime, status)
-            if status.get('VMState') != 'running':
-                break
-    if status.get('VMState') == 'running':
+        need(started_vm, 'SCREENSHOT_VM_OWNERSHIP')
         command(runtime, 'controlvm', runtime['vm_name'], 'poweroff')
-        status = vm_state(runtime)
+        status = wait_for_shutdown(runtime, viso, owned_vm_state(runtime, viso))
     if status.get('VMState') == 'saved':
         command(runtime, 'discardstate', runtime['vm_name'])
-        status = vm_state(runtime)
+        status = wait_for_shutdown(runtime, viso, owned_vm_state(runtime, viso))
+    need(status.get('VMState') == 'poweroff', 'SCREENSHOT_VM_SHUTDOWN')
     need(vm_configuration(runtime, status, 'poweroff') == runtime['boot_media'], 'SCREENSHOT_VM_STORAGE')
-    attached = status.get('OfflineOptical-1-0')
-    if attached != 'emptydrive':
-        need(attached and safe_path(attached) == viso, 'SCREENSHOT_TASK_MEDIA')
+    if status.get('OfflineOptical-1-0') != 'emptydrive':
         change_task_disc(runtime, 'emptydrive')
-        status = vm_state(runtime)
+        status = owned_vm_state(runtime, viso)
         need(vm_configuration(runtime, status, 'poweroff') == runtime['boot_media']
              and status.get('OfflineOptical-1-0') == 'emptydrive', 'SCREENSHOT_TASK_MEDIA')
     runtime_integrity(runtime)
@@ -338,32 +390,34 @@ def cleanup(runtime, viso):
 def render(backend, cap, scan, job, runtime):
     """Run exactly one existing scanned capsule, then verify complete teardown."""
     backend.record['phase'] = 'SCREENSHOT_VM_PREFLIGHT'
-    need(preflight() == runtime, 'SCREENSHOT_RUNTIME_CHANGED')
-    viso = prepare_disc(backend, cap, scan)
-    serial = runtime['serial_path']
-    checksum = digest(cap / 'checksums.txt')
     vm = runtime['vm_name']
     started = time.perf_counter()
-    try:
+    with vm_capture_lock(runtime):
+        need(preflight() == runtime, 'SCREENSHOT_RUNTIME_CHANGED')
+        viso = prepare_disc(backend, cap, scan)
+        checksum = digest(cap / 'checksums.txt')
         command(runtime, 'snapshot', vm, 'restore', runtime['snapshot_uuid'])
-        status = vm_state(runtime)
-        need(vm_configuration(runtime, status, 'saved') == runtime['boot_media']
-             and status.get('OfflineOptical-1-0') == 'emptydrive', 'SCREENSHOT_TASK_MEDIA')
-        backend.binding.verify(cap, scan)
-        serial.write_bytes(b'')
-        command(runtime, 'startvm', vm, '--type', 'headless')
-        change_task_disc(runtime, viso)
-        script = ("{ mkdir -p /mnt/fixtures; mount -o ro /dev/sr1 /mnt/fixtures && cd /mnt/fixtures "
-                  f"&& echo '{checksum}  checksums.txt' | sha256sum -c - && sh screenshot_guest.sh; "
-                  "echo SCREENSHOT_EXIT:$?; sync; poweroff -f; } > /dev/ttyS0 2>&1")
-        command(runtime, 'controlvm', vm, 'keyboardputstring', script)
-        command(runtime, 'controlvm', vm, 'keyboardputscancode', '1c', '9c')
-        raw = wait_for_frame(serial)
-        (backend.evidence / 'guest_serial.txt').write_bytes(raw)
-        result, images = frame(raw, job)
-    finally:
-        cleanup(runtime, viso)
-        backend.binding.verify(cap, scan)
+        started_vm = False
+        try:
+            status = vm_state(runtime)
+            need(vm_configuration(runtime, status, 'saved') == runtime['boot_media']
+                 and status.get('OfflineOptical-1-0') == 'emptydrive', 'SCREENSHOT_TASK_MEDIA')
+            backend.binding.verify(cap, scan)
+            clear_serial(runtime)
+            command(runtime, 'startvm', vm, '--type', 'headless')
+            started_vm = True
+            change_task_disc(runtime, viso)
+            script = ("{ mkdir -p /mnt/fixtures; mount -o ro /dev/sr1 /mnt/fixtures && cd /mnt/fixtures "
+                      f"&& echo '{checksum}  checksums.txt' | sha256sum -c - && sh screenshot_guest.sh; "
+                      "echo SCREENSHOT_EXIT:$?; sync; poweroff -f; } > /dev/ttyS0 2>&1")
+            command(runtime, 'controlvm', vm, 'keyboardputstring', script)
+            command(runtime, 'controlvm', vm, 'keyboardputscancode', '1c', '9c')
+            raw = wait_for_frame(runtime['serial_path'])
+            (backend.evidence / 'guest_serial.txt').write_bytes(raw)
+            result, images = frame(raw, job)
+        finally:
+            cleanup(runtime, viso, started_vm=started_vm)
+            backend.binding.verify(cap, scan)
     backend.record.update(vm_final_state='poweroff', task_media_detached=True,
                           vm_seconds=round(time.perf_counter() - started, 3))
     screenshots = []

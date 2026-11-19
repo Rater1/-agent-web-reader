@@ -121,6 +121,25 @@ class Tests(unittest.TestCase):
                 vm.preflight()
             command.assert_not_called()
 
+    def test_preflight_blocks_boot_iso_as_serial_path_or_hard_link(self):
+        alias = self.runtime['serial_path']
+        alias.write_bytes(b'Alias fixture')
+        samefile = Path.samefile
+
+        def link_identity(path, target):
+            return (path == alias and target == self.iso) or samefile(path, target)
+
+        for path in (self.iso, alias):
+            runtime = self.runtime | {'serial_path': path}
+            config = self.configuration | {'uartmode1': 'file,' + str(path)}
+            with self.subTest(path=path.name), patch.object(vm, 'read_runtime', return_value=runtime), \
+                 patch.object(vm, 'free_memory', return_value=vm.MEMORY_FLOOR), \
+                 patch.object(vm, 'vm_state', return_value=config), \
+                 patch.object(Path, 'samefile', link_identity), \
+                 self.assertRaisesRegex(ValueError, 'SCREENSHOT_SERIAL_PATH'):
+                vm.preflight()
+        self.assertEqual(self.iso.read_bytes(), b'Synthetic ISO identity')
+
     def test_guest_and_pngs_must_bind_to_job(self):
         result = fixture_result(self.job)
         value, images = vm.frame(packet(result), self.job)
@@ -154,21 +173,121 @@ class Tests(unittest.TestCase):
                 vm.render(backend, cap, {}, self.job, self.runtime)
             command.assert_called_once_with(self.runtime, 'snapshot', self.runtime['vm_name'],
                                             'restore', self.runtime['snapshot_uuid'])
-            cleanup.assert_called_once()
+            cleanup.assert_called_once_with(self.runtime, self.runtime['work_dir']/'task.viso', started_vm=False)
+
+    def test_late_iso_alias_blocks_serial_clear_and_vm_start(self):
+        cap = self.runtime['work_dir'] / 'capsule'
+        cap.mkdir()
+        (cap/'checksums.txt').write_bytes(b'Fixture checksums')
+        viso = self.runtime['work_dir'] / 'task.viso'
+        backend = SimpleNamespace(record={}, binding=Mock(), work=self.runtime['work_dir'])
+        alias = self.runtime['serial_path']
+        samefile = Path.samefile
+
+        def attach_alias(*_):
+            if not alias.exists():
+                alias.write_bytes(b'Alias fixture')
+
+        def link_identity(path, target):
+            return (path == alias and target == self.iso) or samefile(path, target)
+
+        backend.binding.verify.side_effect = attach_alias
+        restored = self.configuration | {'VMState': 'saved'}
+        with patch.object(vm, 'preflight', return_value=self.runtime), \
+             patch.object(vm, 'prepare_disc', return_value=viso), \
+             patch.object(vm, 'vm_state', return_value=restored), patch.object(vm, 'cleanup') as cleanup, \
+             patch.object(Path, 'samefile', link_identity), \
+             patch.object(vm, 'command') as command:
+            with self.assertRaisesRegex(ValueError, 'SCREENSHOT_SERIAL_PATH'):
+                vm.render(backend, cap, {}, self.job, self.runtime)
+            command.assert_called_once_with(self.runtime, 'snapshot', self.runtime['vm_name'],
+                                            'restore', self.runtime['snapshot_uuid'])
+            cleanup.assert_called_once_with(self.runtime, viso, started_vm=False)
+        self.assertEqual(self.iso.read_bytes(), b'Synthetic ISO identity')
+
+    def test_vm_lock_blocks_another_checkout_before_final_preflight(self):
+        backend = SimpleNamespace(record={})
+        other_checkout = self.runtime | {'work_dir': self.runtime['work_dir']/'another-work-dir'}
+        with vm.vm_capture_lock(self.runtime), patch.object(vm, 'preflight') as preflight, \
+             patch.object(vm, 'command') as command, patch.object(vm, 'cleanup') as cleanup:
+            with self.assertRaisesRegex(ValueError, 'SCREENSHOT_VM_BUSY_OR_STALE_LOCK'):
+                vm.render(backend, None, {}, self.job, other_checkout)
+            preflight.assert_not_called()
+            command.assert_not_called()
+            cleanup.assert_not_called()
+        with vm.vm_capture_lock(other_checkout):
+            pass
+
+    def test_restore_failure_does_not_take_control_of_another_session(self):
+        cap = self.runtime['work_dir'] / 'capsule'
+        cap.mkdir()
+        (cap/'checksums.txt').write_bytes(b'Fixture checksums')
+        backend = SimpleNamespace(record={}, binding=Mock())
+        with patch.object(vm, 'preflight', return_value=self.runtime), \
+             patch.object(vm, 'prepare_disc', return_value=self.runtime['work_dir']/'task.viso'), \
+             patch.object(vm, 'command', side_effect=vm.VBoxFailure('SCREENSHOT_VM_COMMAND')) as command, \
+             patch.object(vm, 'cleanup') as cleanup:
+            with self.assertRaisesRegex(vm.VBoxFailure, 'SCREENSHOT_VM_COMMAND'):
+                vm.render(backend, cap, {}, self.job, self.runtime)
+            command.assert_called_once_with(self.runtime, 'snapshot', self.runtime['vm_name'],
+                                            'restore', self.runtime['snapshot_uuid'])
+            cleanup.assert_not_called()
 
     def test_cleanup_detaches_only_its_own_media(self):
         viso = self.runtime['work_dir'] / 'task.viso'
         unrelated = self.configuration | {'OfflineOptical-1-0': str(self.runtime['work_dir']/'other.viso')}
         with patch.object(vm, 'vm_state', return_value=unrelated), \
-             patch.object(vm, 'change_task_disc') as detach:
+             patch.object(vm, 'change_task_disc') as detach, patch.object(vm, 'command') as command:
             with self.assertRaisesRegex(ValueError, 'SCREENSHOT_TASK_MEDIA'):
-                vm.cleanup(self.runtime, viso)
+                vm.cleanup(self.runtime, viso, started_vm=True)
             detach.assert_not_called()
+            command.assert_not_called()
         attached = self.configuration | {'OfflineOptical-1-0': str(viso)}
         with patch.object(vm, 'vm_state', side_effect=[attached, self.configuration]), \
              patch.object(vm, 'change_task_disc') as detach:
-            vm.cleanup(self.runtime, viso)
+            vm.cleanup(self.runtime, viso, started_vm=True)
             detach.assert_called_once_with(self.runtime, 'emptydrive')
+
+    def test_cleanup_waits_through_stopping_before_detaching(self):
+        viso = self.runtime['work_dir'] / 'task.viso'
+        attached = self.configuration | {'OfflineOptical-1-0': str(viso)}
+        states = [attached | {'VMState': 'running'}, attached | {'VMState': 'stopping'},
+                  attached, self.configuration]
+        with patch.object(vm, 'vm_state', side_effect=states), patch.object(vm.time, 'sleep'), \
+             patch.object(vm, 'command') as command, patch.object(vm, 'change_task_disc') as detach:
+            vm.cleanup(self.runtime, viso, started_vm=True)
+            command.assert_not_called()
+            detach.assert_called_once_with(self.runtime, 'emptydrive')
+
+    def test_cleanup_never_turns_off_a_vm_it_did_not_start(self):
+        viso = self.runtime['work_dir'] / 'task.viso'
+        running = self.configuration | {'VMState': 'running'}
+        with patch.object(vm, 'vm_state', return_value=running), patch.object(vm.time, 'sleep'), \
+             patch.object(vm, 'command') as command, patch.object(vm, 'change_task_disc') as detach:
+            with self.assertRaisesRegex(ValueError, 'SCREENSHOT_VM_OWNERSHIP'):
+                vm.cleanup(self.runtime, viso, started_vm=False)
+            command.assert_not_called()
+            detach.assert_not_called()
+
+    def test_cleanup_stopping_timeout_leaves_its_media_alone(self):
+        viso = self.runtime['work_dir'] / 'task.viso'
+        stopping = self.configuration | {'VMState': 'stopping', 'OfflineOptical-1-0': str(viso)}
+        with patch.object(vm, 'vm_state', return_value=stopping) as state, \
+             patch.object(vm.time, 'sleep'), patch.object(vm, 'command') as command, \
+             patch.object(vm, 'change_task_disc') as detach:
+            with self.assertRaisesRegex(ValueError, 'SCREENSHOT_VM_SHUTDOWN'):
+                vm.cleanup(self.runtime, viso, started_vm=True)
+            self.assertEqual(state.call_count, vm.SHUTDOWN_POLLS + 1)
+            command.assert_not_called()
+            detach.assert_not_called()
+
+    def test_existing_valid_serial_is_cleared_and_missing_serial_is_created(self):
+        serial = self.runtime['serial_path']
+        vm.clear_serial(self.runtime)
+        self.assertEqual(serial.read_bytes(), b'')
+        serial.write_bytes(b'Previous frame')
+        vm.clear_serial(self.runtime)
+        self.assertEqual(serial.read_bytes(), b'')
 
 
 if __name__ == '__main__':

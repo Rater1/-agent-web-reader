@@ -131,7 +131,7 @@ class Broker:
         dest = self.output / req['id']
         dest.mkdir(parents=True, exist_ok=False)
         body, headers = dest / 'body.bin', dest / 'headers.txt'
-        argv = [str(CURL), '-q', '--silent', '--show-error', '--proxy', PROXY, '--noproxy', '',
+        argv = [str(CURL), '-q', '--globoff', '--silent', '--show-error', '--proxy', PROXY, '--noproxy', '',
                 '--connect-to', f'{host}:443:{ip}:443', '--proto', '=https', '--proto-redir', '=https',
                 '--max-redirs', '0', '--retry', '0', '--connect-timeout', '6', '--max-time', '12',
                 '--max-filesize', str(MAX_BODY), '--request', 'GET', '--header', 'Accept-Encoding: identity',

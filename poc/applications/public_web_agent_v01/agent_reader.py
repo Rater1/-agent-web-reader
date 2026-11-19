@@ -307,7 +307,8 @@ def operation_lock(root=STATE):
 def selftests():
     env = dict(SystemRoot=r'C:\Windows', WINDIR=r'C:\Windows', PATH=r'C:\Windows\System32')
     for opt in (False, True):
-        for name in ('test_agent.py','test_batch.py','test_screenshot.py','test_screenshot_vm.py'):
+        for name in ('test_agent.py', 'test_batch.py', 'test_screenshot.py', 'test_screenshot_vm.py',
+                     'test_screenshot_transport.py'):
             child = subprocess.run([sys.executable, '-I', '-S', '-B', *(['-O'] if opt else []), str(HERE/name)],
                                    env=env, capture_output=True, timeout=30)
             if child.returncode:

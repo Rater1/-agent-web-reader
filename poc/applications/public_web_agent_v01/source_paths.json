@@ -15,6 +15,7 @@
   "poc/applications/public_web_agent_v01/test_agent.py",
   "poc/applications/public_web_agent_v01/test_batch.py",
   "poc/applications/public_web_agent_v01/test_screenshot.py",
+  "poc/applications/public_web_agent_v01/test_screenshot_transport.py",
   "poc/applications/public_web_agent_v01/test_screenshot_vm.py",
   "poc/applications/public_web_reader_v01/guest_probe.sh",
   "poc/applications/public_web_reader_v01/reader.py",

@@ -1,5 +1,6 @@
 """Offline tests for screenshot routing and initial resource scope."""
 
+import hashlib
 import json
 from pathlib import Path
 import sys
@@ -33,6 +34,123 @@ class ScreenshotTests(unittest.TestCase):
         self.assertEqual(possible.excluded, 2)
         with self.assertRaisesRegex(ValueError, 'SCREENSHOT_ASSET_LIMIT'):
             possible.feed(''.join(f'<script src="/{index}.js"></script>' for index in range(7)))
+
+    def test_browser_url_keys_normalize_root_port_and_path(self):
+        cases = {
+            'https://Example.COM:443': 'https://example.com/',
+            'https://example.com/a/%2e%2e//b?': 'https://example.com//b?',
+            "https://example.com/a^b?q=it's": 'https://example.com/a%5Eb?q=it%27s',
+        }
+        for supplied, expected in cases.items():
+            with self.subTest(supplied=supplied):
+                self.assertEqual(screenshot.url(supplied), expected)
+                self.assertEqual(screenshot.url(expected), expected)
+
+    def test_first_supported_document_base_resolves_relative_assets(self):
+        possible = screenshot.Assets('https://example.com/sub/page')
+        possible.feed('<template><base href="/ignored/"></template>'
+                      '<base href="../static/archive/../"><base href="/ignored/">'
+                      '<script src="js//one.js?"></script><link rel="stylesheet" href="main.css">')
+        self.assertEqual(possible.rows, {
+            'https://example.com/static/js//one.js?': 'script',
+            'https://example.com/static/main.css': 'style',
+        })
+
+    def test_foreign_base_cannot_expand_the_origin(self):
+        possible = screenshot.Assets('https://example.com/')
+        possible.feed('<base href="https://assets.example/static/">'
+                      '<script src="foreign.js"></script><link rel="stylesheet" href="/foreign.css">'
+                      '<script src="https://example.com:443/allowed.js"></script>')
+        self.assertEqual(possible.rows, {'https://example.com/allowed.js': 'script'})
+        self.assertEqual(possible.excluded, 2)
+
+    def test_csp_base_uri_leaves_relative_resources_unresolved(self):
+        header = dict(name='content-security-policy', value="default-src 'self'; base-uri 'none'")
+        possible = screenshot.Assets('https://example.com/', [header])
+        possible.feed('<base href="/different/"><script src="relative.js"></script>'
+                      '<script src="https://example.com/absolute.js"></script>')
+        self.assertEqual(possible.rows, {'https://example.com/absolute.js': 'script'})
+        self.assertEqual(possible.excluded, 1)
+
+    def test_projection_preserves_each_final_csp_and_drops_cookie(self):
+        raw = (b'HTTP/1.1 200 Connection established\r\n\r\n'
+               b'HTTP/2 103\r\nContent-Type: text/plain\r\n\r\n'
+               b'HTTP/2 200\r\nContent-Type: text/html; charset=utf-8\r\n'
+               b"Content-Security-Policy: default-src 'self'\r\n"
+               b"content-security-policy: script-src 'none'\r\n"
+               b'Set-Cookie: synthetic=1\r\nContent-Encoding: identity\r\n\r\n')
+        self.assertEqual(screenshot.response_headers(raw, 'html'), [
+            dict(name='content-type', value='text/html; charset=utf-8'),
+            dict(name='content-security-policy', value="default-src 'self'"),
+            dict(name='content-security-policy', value="script-src 'none'"),
+        ])
+
+    def test_unsupported_response_objects_stop_before_replay(self):
+        for header, code in (
+            (b'Content-Disposition: Attachment; filename="page.html"', 'SCREENSHOT_ATTACHMENT'),
+            (b'Content-Encoding: gzip', 'SCREENSHOT_ENCODING'),
+            (b'Content-Encoding: identity, br', 'SCREENSHOT_ENCODING'),
+            (b'Content-Type: text/html', 'SCREENSHOT_MIME'),
+            (b' folded-value', 'SCREENSHOT_HEADERS'),
+        ):
+            with self.subTest(header=header), self.assertRaisesRegex(ValueError, code):
+                screenshot.response_headers(b'HTTP/1.1 200 OK\r\nContent-Type: text/html\r\n'
+                                            + header + b'\r\n\r\n', 'html')
+
+    def test_capture_uses_one_url_key_and_binds_replayed_headers(self):
+        raw = b"HTTP/2 200\r\nContent-Type: text/html\r\nContent-Security-Policy: script-src 'none'\r\n\r\n"
+        calls = []
+
+        class Broker:
+            def __init__(self, output):
+                self.output = output
+                self.calls = 0
+
+            def handle(self, request):
+                row = json.loads(request)
+                calls.append(row['url'])
+                self.calls += 1
+                self_test.assertEqual(broker.URLS, frozenset([row['url']]))
+                folder = self.output / row['id']
+                folder.mkdir(parents=True)
+                (folder / 'headers.txt').write_bytes(raw)
+                (folder / 'body.bin').write_bytes(b'<html><body>fixture</body></html>')
+                return dict(outcome='FETCHED')
+
+        self_test = self
+        broker = types.SimpleNamespace(Broker=Broker)
+        source = 'https://example.com/'
+        with tempfile.TemporaryDirectory() as path:
+            root = Path(path)
+
+            def render(_backend, cap, _receipt, job, _runtime):
+                self.assertEqual(job['url'], source)
+                self.assertEqual(list(job['maps']), [source])
+                self.assertEqual(job['maps'][source]['response_headers'], screenshot.response_headers(raw, 'html'))
+                self.assertEqual(json.loads((cap / 'job.json').read_text(encoding='utf-8')), job)
+                return dict(blocked_count=0, script_errors=0)
+
+            runtime = {'work_dir': root}
+            app = screenshot.Backend((types.SimpleNamespace(render=render), runtime, broker), root)
+
+            def receipt(target, _part):
+                return dict(path=str(target), verdict='OK', content_binding='full', evidence='eventlog',
+                            **app.binding.snapshot(target))
+
+            with patch.object(app, 'declare'), patch.object(app, 'scan', side_effect=receipt):
+                result = app.capture('https://Example.COM:443')
+                self.assertEqual(result['source']['url'], source)
+                self.assertEqual(calls, [source])
+
+            changed = screenshot.Backend((None, runtime, broker), root)
+            with patch.object(changed, 'declare'), patch.object(changed, 'scan', side_effect=receipt):
+                incoming, maps, _ = changed.acquire(source)
+                header = maps[source]['header_path']
+                header.write_bytes(raw.replace(b"'none'", b"'self'"))
+                new_receipt = receipt(incoming, 'incoming')
+                self.assertNotEqual(hashlib.sha256(header.read_bytes()).hexdigest(), maps[source]['headers_sha256'])
+                with self.assertRaisesRegex(ValueError, 'SCREENSHOT_INPUT_CHANGED'):
+                    changed.stage(source, incoming, maps, new_receipt)
 
     def test_request_has_no_files_headers_or_code(self):
         inp = dict(op='screenshot', url='https://example.com/')

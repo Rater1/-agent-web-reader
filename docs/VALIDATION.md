@@ -79,3 +79,11 @@ isolated VM cleanup. Its release checks exercise the public code with
 synthetic inputs and mocked controls. Earlier live testing used a separately
 configured local runtime and a different source version. A fresh public
 runtime and live deployment remain to be independently reproduced.
+
+## Screenshot review fixes in 0.3.1
+
+The offline tests inspect the shared curl invocation, simulate overlapping
+captures and VM shutdown states, and exercise content binding for raw headers
+and the canonical replay map. They also cover the first document base and
+same-origin checks. Results for the exact source freeze are recorded in
+[RELEASE_CHECKS.json](../RELEASE_CHECKS.json).
