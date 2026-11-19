@@ -119,3 +119,58 @@ two false truncation flags did not identify the missed content. The result
 covers one controlled page with zero website requests. The evidence uses the
 exact frozen source identifier retained in
 [RELEASE_CHECKS.json](../RELEASE_CHECKS.json).
+
+## Experimental screenshot coverage and recovery
+
+The released v0.3.2 renderer, which jumps to the page end, served as the
+baseline. The experimental renderer visits overlapping viewports in steps
+of up to 550 pixels. It uses the same 750-pixel viewport and 6,000-pixel
+capture limit. The stepped renderer remains an experimental candidate.
+
+### Content coverage
+
+Four fixed synthetic pages each ran once per renderer on the same offline
+VirtualBox guest. They covered viewport-triggered content, a long table, a
+fixed footer, and small Chinese text. The same capture, scan, and teardown
+checks passed in all eight runs. Two reader agents saw only the PNGs and the
+field questions. Each agent saw one renderer per page, with the assignment
+crossed between pages.
+
+| Measure | Jump to the end | Stepped scrolling |
+| --- | ---: | ---: |
+| Exact answers to required fields | 10/11 | 11/11 |
+| Required fields missing from both the PNG readback and excerpt, with no warning | 1 | 0 |
+| Long-page runs with the expected vertical truncation flag | 1/1 | 1/1 |
+
+The added field required entering a middle viewport. The baseline showed a
+loading placeholder while reporting `SCREENSHOT_READY` and
+`resource_complete=true`. Both long-page runs reported vertical truncation.
+The field beyond the capture limit was outside the images. The four paired
+end-to-end time differences had a median of −7.0 seconds for the stepped
+renderer. Each page had one pair, and guest renderer times varied across
+baseline runs, so estimating the speed effect needs repeated pairs.
+
+### Live timing and controlled failures
+
+The first live attempt stopped at the broker's parse/DNS check, before any
+HTTP GET or VM start. Once the system resolver returned an address for the
+target, a separate series on the same host and snapshot completed three
+captures of the [same demo page](https://quotes.toscrape.com/js/).
+Their end-to-end times were 36.67, 36.08, and 35.77 seconds. Each used the
+same four same-origin responses, produced a full image with ten verified
+quote cards, and blocked one cross-origin font stylesheet.
+
+| Stage | Median for the three successful captures |
+| --- | ---: |
+| Request end to end | 36.08 s |
+| Host acquisition and scan | 8.66 s |
+| VM startup through result validation | 19.93 s |
+| Guest renderer time, included in the VM stage | 2.79 s |
+| VM cleanup | 1.42 s |
+
+A local acquisition refusal stopped before scanning and VM start. In a
+separate local trial, a forced stop after attaching the current job disc
+exercised the real VM cleanup. The driver powered off the guest, detached
+the disc, and released its locks. A subsequent synthetic capture on the
+same frozen candidate succeeded. These observations cover four controlled
+pages and one public demo site on one host.
